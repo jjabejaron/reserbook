@@ -641,10 +641,10 @@ input:checked+.switch-slider:before{transform:translateX(20px);background:white}
     <!-- Share link -->
     <div class="card" style="margin-bottom:16px">
       <div style="font-family:'Syne',sans-serif;font-size:15px;font-weight:700;margin-bottom:10px">Your Booking Link</div>
-      <div class="share-link-box" onclick="copyShareLink()">
+      <div class="share-link-box">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--purple-light)" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
-        <div class="share-link-url" id="share-url">reserbook.app/u/maria-santos</div>
-        <button class="copy-btn">Copy</button>
+        <a class="share-link-url" id="share-url" target="_blank" style="text-decoration:none; cursor:pointer;" onclick="event.stopPropagation();">reserbook.app/u/maria-santos</a>
+        <button class="copy-btn" onclick="copyShareLink(event)">Copy</button>
       </div>
     </div>
 
@@ -950,43 +950,16 @@ let state = {
   isOnline: navigator.onLine
 };
 
-// Load from localStorage
-function loadState() {
-  try {
-    const saved = localStorage.getItem('reserbook_state');
-    if (saved) {
-      const parsed = JSON.parse(saved);
-      state = {...state, ...parsed};
-      state.pubCalMonth = new Date();
-      state.flCalMonth = new Date();
-    }
-  } catch(e){}
-}
-
-function saveState() {
-  try {
-    const toSave = {...state};
-    delete toSave.pubCalMonth;
-    delete toSave.flCalMonth;
-    localStorage.setItem('reserbook_state', JSON.stringify(toSave));
-  } catch(e){}
-}
+// Local load/save state are replaced by Firebase logic in the module script below.
+function loadState() { /* No-op, handled by Firebase */ }
+function saveState() { /* Overridden by Firebase script */ }
 
 // ── INIT ──────────────────────────────────────────────────────────────────
 window.addEventListener('load', () => {
-  loadState();
   // Offline detection
   window.addEventListener('online', () => { state.isOnline = true; updateOfflineBar(); syncQueue(); });
   window.addEventListener('offline', () => { state.isOnline = false; updateOfflineBar(); });
-  
-  setTimeout(() => {
-    document.getElementById('splash').classList.add('hide');
-    if (state.user) {
-      showMainApp();
-    } else {
-      document.getElementById('auth-screen').style.display = 'flex';
-    }
-  }, 2000);
+  // Routing and splash screen hide is now handled by Firebase onAuthStateChanged
 });
 
 function updateOfflineBar() {
@@ -1122,7 +1095,9 @@ function updateTopbar() {
   const u = state.user;
   if (!u) return;
   document.getElementById('topbar-avatar').textContent = u.initials;
-  document.getElementById('share-url').textContent = `reserbook.app/u/${u.slug}`;
+  const url = `${window.location.origin}/u/${u.slug}`;
+  document.getElementById('share-url').textContent = `${window.location.host}/u/${u.slug}`;
+  document.getElementById('share-url').href = url;
 }
 
 // ── DASHBOARD ─────────────────────────────────────────────────────────────
@@ -1729,10 +1704,12 @@ function showMainApp2() {
 }
 
 // Make the share link open the public page
-function copyShareLink() {
+function copyShareLink(e) {
+  if (e) e.stopPropagation();
   showToast('🔗','Link copied! Share it with your clients.','success');
   // In a real app this would copy to clipboard
-  if(navigator.clipboard) navigator.clipboard.writeText(`reserbook.app/u/${state.user?.slug||'freelancer'}`).catch(()=>{});
+  const link = `${window.location.origin}/u/${state.user?.slug||'freelancer'}`;
+  if(navigator.clipboard) navigator.clipboard.writeText(link).catch(()=>{});
 }
 
 // ── MODAL UTILS ───────────────────────────────────────────────────────────
@@ -1800,8 +1777,9 @@ document.addEventListener('keydown', e => {
 });
 </script>
 <script type="module">
-
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getFirestore, doc, setDoc, getDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBiaUkd3SsS9_kuCvtls7LpbdprvnPN3ZQ",
@@ -1813,9 +1791,142 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
 
-console.log("Firebase Connected!");
+window.firebaseAuth = auth;
+window.firebaseDb = db;
 
+// Override loadState and saveState
+window.saveState = async function() {
+  if (auth.currentUser) {
+    try {
+      const toSave = {...state};
+      delete toSave.pubCalMonth;
+      delete toSave.flCalMonth;
+      await setDoc(doc(db, "freelancers", auth.currentUser.uid), toSave);
+    } catch (e) {
+      console.error("Error saving to Firestore", e);
+    }
+  } else if (window.publicFreelancerId) {
+    // A public user is booking, we need to update the freelancer's doc
+    try {
+      const toSave = {...state};
+      delete toSave.pubCalMonth;
+      delete toSave.flCalMonth;
+      await setDoc(doc(db, "freelancers", window.publicFreelancerId), toSave);
+    } catch (e) {
+      console.error("Error saving public booking to Firestore", e);
+    }
+  }
+};
+
+window.doLogin = async function() {
+  const email = document.getElementById('login-email').value.trim();
+  const pass = document.getElementById('login-password').value;
+  if (!email || !pass) { showToast('⚠️','Please fill in all fields','error'); return; }
+  try {
+    await signInWithEmailAndPassword(auth, email, pass);
+  } catch (e) {
+    showToast('⚠️', e.message, 'error');
+  }
+};
+
+window.doRegister = async function() {
+  const fname = document.getElementById('reg-fname').value.trim();
+  const lname = document.getElementById('reg-lname').value.trim();
+  const services = document.getElementById('reg-services').value.trim();
+  const rate = parseInt(document.getElementById('reg-rate').value) || 0;
+  const deposit = parseInt(document.getElementById('reg-deposit').value) || 25;
+  const sessionType = document.getElementById('reg-session-type').value;
+  const location = document.getElementById('reg-location').value.trim();
+  const email = document.getElementById('reg-email').value.trim();
+  const phone = document.getElementById('reg-phone').value.trim();
+  const pass = document.getElementById('reg-password').value;
+  const confirm = document.getElementById('reg-confirm').value;
+  if (!fname||!lname||!email||!pass) { showToast('⚠️','Fill in required fields','error'); return; }
+  if (pass !== confirm) { showToast('⚠️','Passwords do not match','error'); return; }
+  if (rate < 1) { showToast('⚠️','Enter a valid hourly rate','error'); return; }
+  
+  try {
+    const userCred = await createUserWithEmailAndPassword(auth, email, pass);
+    const initials = (fname[0]+(lname[0]||'')).toUpperCase();
+    const slug = (fname+'-'+lname).toLowerCase().replace(/\s+/g,'-');
+    
+    state.user = {firstName:fname,lastName:lname,email,phone,services,rate,deposit,sessionType,location,initials,slug};
+    state.monthlyGoal = 0;
+    state.cancelWindow = 24;
+    state.depositByDay = {0:deposit,1:deposit,2:deposit,3:deposit,4:deposit,5:Math.min(deposit+5,100),6:Math.min(deposit+5,100)};
+    state.bookings = [];
+    state.slots = [];
+    state.waitlist = [];
+    
+    await window.saveState();
+    showMainApp();
+    showToast('🎉','Welcome to ReserBook!','success');
+  } catch (e) {
+    showToast('⚠️', e.message, 'error');
+  }
+};
+
+window.doLogout = async function() {
+  try {
+    await signOut(auth);
+    state.user = null;
+    document.getElementById('main-app').style.display = 'none';
+    document.getElementById('auth-screen').style.display = 'flex';
+    showToast('👋','Logged out successfully','success');
+  } catch (e) {
+    showToast('⚠️', e.message, 'error');
+  }
+};
+
+// Handle Auth State
+onAuthStateChanged(auth, async (user) => {
+  if (user) {
+    const docSnap = await getDoc(doc(db, "freelancers", user.uid));
+    if (docSnap.exists()) {
+      const data = docSnap.data();
+      state = { ...state, ...data };
+      state.pubCalMonth = new Date();
+      state.flCalMonth = new Date();
+    }
+    document.getElementById('splash').classList.add('hide');
+    showMainApp();
+    showToast('👋', `Welcome back, ${state.user.firstName}!`, 'success');
+  } else {
+    // Check if URL has ?u=slug or /u/slug to show public page
+    const params = new URLSearchParams(window.location.search);
+    let slug = params.get('u');
+    if (!slug && window.location.pathname.startsWith('/u/')) {
+      slug = window.location.pathname.split('/u/')[1].replace(/\/$/, '');
+    }
+    if (slug) {
+      const q = query(collection(db, 'freelancers'), where('user.slug', '==', slug));
+      const snap = await getDocs(q);
+      if (!snap.empty) {
+        const data = snap.docs[0].data();
+        state = { ...state, ...data };
+        state.pubCalMonth = new Date();
+        window.publicFreelancerId = snap.docs[0].id; 
+        document.getElementById('splash').classList.add('hide');
+        document.getElementById('auth-screen').style.display = 'none';
+        document.getElementById('main-app').style.display = 'none';
+        document.getElementById('public-booking').style.display = 'flex';
+        renderPublicBookingPage();
+        return;
+      } else {
+        showToast('⚠️', 'Freelancer not found', 'error');
+      }
+    }
+    
+    document.getElementById('splash').classList.add('hide');
+    document.getElementById('auth-screen').style.display = 'flex';
+    document.getElementById('main-app').style.display = 'none';
+  }
+});
+
+console.log("Firebase Connected and logic loaded!");
 </script>
 </body>
 </html>
