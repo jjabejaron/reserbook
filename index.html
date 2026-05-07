@@ -1799,5 +1799,23 @@ document.addEventListener('keydown', e => {
   if (e.key==='Escape') document.querySelectorAll('.modal-overlay.open').forEach(m=>m.classList.remove('open'));
 });
 </script>
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBiaUkd3SsS9_kuCvtls7LpbdprvnPN3ZQ",
+  authDomain: "reserbook.firebaseapp.com",
+  projectId: "reserbook",
+  storageBucket: "reserbook.firebasestorage.app",
+  messagingSenderId: "812582380775",
+  appId: "1:812582380775:web:522160948fbb8c53b2ee42"
+};
+
+const app = initializeApp(firebaseConfig);
+
+console.log("Firebase Connected!");
+
+</script>
 </body>
 </html>
