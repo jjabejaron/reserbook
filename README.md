@@ -20,7 +20,7 @@ ReserBook is a modern deposit-based booking platform designed for freelancers, t
 
 ---
 
-## 🛠️ Built With
+## Built With
 
 - HTML5
 - CSS3
