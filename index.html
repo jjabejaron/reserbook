@@ -1,0 +1,1803 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#6B3FA0">
+<meta name="description" content="ReserBook - Deposit-based booking for freelancers">
+<title>ReserBook</title>
+<link rel="manifest" href="data:application/json,{&quot;name&quot;:&quot;ReserBook&quot;,&quot;short_name&quot;:&quot;ReserBook&quot;,&quot;start_url&quot;:&quot;/&quot;,&quot;display&quot;:&quot;standalone&quot;,&quot;theme_color&quot;:&quot;#6B3FA0&quot;,&quot;background_color&quot;:&quot;#0F0A1A&quot;}">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,400&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --purple:#7C3AED;--purple-light:#9D6FF7;--purple-dark:#5B21B6;--purple-deep:#3B0764;
+  --gold:#F59E0B;--gold-light:#FCD34D;--teal:#0EA5E9;--rose:#F43F5E;
+  --bg:#0F0A1A;--bg2:#1A1025;--bg3:#231632;--bg4:#2D1B44;
+  --card:#1E1230;--card2:#261540;
+  --text:#F5F0FF;--text2:#C4B5FD;--text3:#9478C8;--text4:#6B5A8E;
+  --border:rgba(124,58,237,0.2);--border2:rgba(124,58,237,0.4);
+  --success:#10B981;--warning:#F59E0B;--danger:#EF4444;
+  --r:16px;--r2:12px;--r3:8px;
+  --shadow:0 8px 32px rgba(0,0,0,0.4);
+  --glow:0 0 40px rgba(124,58,237,0.15);
+}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+h1,h2,h3,h4,h5{font-family:'Syne',sans-serif}
+.app{display:flex;flex-direction:column;min-height:100vh}
+
+/* SPLASH */
+#splash{position:fixed;inset:0;background:var(--bg);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:24px;transition:opacity 0.5s}
+#splash.hide{opacity:0;pointer-events:none}
+.splash-logo{width:100px;height:100px;border-radius:28px;background:linear-gradient(135deg,#7C3AED,#5B21B6);display:flex;align-items:center;justify-content:center;box-shadow:0 0 60px rgba(124,58,237,0.5);animation:pulse 2s infinite}
+.splash-logo img{width:80px;height:80px;object-fit:contain;border-radius:20px}
+@keyframes pulse{0%,100%{box-shadow:0 0 40px rgba(124,58,237,0.4)}50%{box-shadow:0 0 80px rgba(124,58,237,0.7)}}
+.splash-title{font-family:'Syne',sans-serif;font-size:36px;font-weight:800;background:linear-gradient(135deg,#9D6FF7,#F59E0B);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.splash-bar{width:200px;height:3px;background:var(--bg3);border-radius:99px;overflow:hidden}
+.splash-bar-inner{height:100%;background:linear-gradient(90deg,var(--purple),var(--gold));border-radius:99px;animation:load 1.8s ease-out forwards}
+@keyframes load{from{width:0}to{width:100%}}
+
+/* AUTH */
+#auth-screen{display:none;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:24px;background:radial-gradient(ellipse at top,#2D1B44 0%,#0F0A1A 60%)}
+.auth-logo{display:flex;align-items:center;gap:14px;margin-bottom:40px}
+.auth-logo-img{width:60px;height:60px;border-radius:18px;background:linear-gradient(135deg,#7C3AED,#5B21B6);display:flex;align-items:center;justify-content:center;box-shadow:0 0 30px rgba(124,58,237,0.4)}
+.auth-logo-img img{width:48px;height:48px;object-fit:contain;border-radius:12px}
+.auth-logo-text{font-family:'Syne',sans-serif;font-size:28px;font-weight:800;background:linear-gradient(135deg,#9D6FF7,#F59E0B);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.auth-card{background:var(--card);border:1px solid var(--border);border-radius:24px;padding:36px;width:100%;max-width:460px;box-shadow:var(--shadow)}
+.auth-tabs{display:flex;background:var(--bg3);border-radius:12px;padding:4px;margin-bottom:28px;gap:4px}
+.auth-tab{flex:1;padding:10px;border:none;background:transparent;color:var(--text3);font-family:'DM Sans',sans-serif;font-size:15px;font-weight:500;border-radius:9px;cursor:pointer;transition:all 0.2s}
+.auth-tab.active{background:var(--purple);color:white}
+.auth-form{display:flex;flex-direction:column;gap:16px}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.form-group{display:flex;flex-direction:column;gap:6px}
+.form-group label{font-size:13px;color:var(--text2);font-weight:500;letter-spacing:0.3px}
+.form-group input,.form-group select,.form-group textarea{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:12px 14px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:15px;outline:none;transition:border-color 0.2s;width:100%}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--purple)}
+.form-group select option{background:var(--bg3)}
+.form-group textarea{resize:vertical;min-height:80px}
+.form-hint{font-size:12px;color:var(--text4)}
+.btn-primary{background:linear-gradient(135deg,var(--purple),var(--purple-dark));color:white;border:none;border-radius:12px;padding:14px 24px;font-family:'Syne',sans-serif;font-size:16px;font-weight:700;cursor:pointer;transition:all 0.2s;letter-spacing:0.3px}
+.btn-primary:hover{transform:translateY(-1px);box-shadow:0 8px 24px rgba(124,58,237,0.4)}
+.btn-secondary{background:var(--bg3);color:var(--text2);border:1px solid var(--border);border-radius:12px;padding:12px 20px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;cursor:pointer;transition:all 0.2s}
+.btn-secondary:hover{border-color:var(--purple);color:var(--purple-light)}
+.btn-ghost{background:transparent;color:var(--text3);border:1px solid var(--border);border-radius:10px;padding:10px 16px;font-family:'DM Sans',sans-serif;font-size:14px;cursor:pointer;transition:all 0.2s}
+.btn-ghost:hover{color:var(--text);border-color:var(--border2)}
+.btn-danger{background:rgba(239,68,68,0.15);color:var(--danger);border:1px solid rgba(239,68,68,0.3);border-radius:10px;padding:10px 16px;font-family:'DM Sans',sans-serif;font-size:14px;cursor:pointer;transition:all 0.2s}
+.btn-success{background:rgba(16,185,129,0.15);color:var(--success);border:1px solid rgba(16,185,129,0.3);border-radius:10px;padding:10px 16px;font-family:'DM Sans',sans-serif;font-size:14px;cursor:pointer;transition:all 0.2s}
+.divider{display:flex;align-items:center;gap:12px;color:var(--text4);font-size:13px}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--border)}
+
+/* MAIN LAYOUT */
+#main-app{display:none;flex-direction:column;min-height:100vh}
+.topbar{position:sticky;top:0;z-index:100;background:rgba(15,10,26,0.9);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:0 20px;height:60px;display:flex;align-items:center;justify-content:space-between}
+.topbar-logo{display:flex;align-items:center;gap:10px;text-decoration:none}
+.topbar-logo-img{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#7C3AED,#5B21B6);display:flex;align-items:center;justify-content:center}
+.topbar-logo-img img{width:28px;height:28px;object-fit:contain;border-radius:8px}
+.topbar-logo-text{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;background:linear-gradient(135deg,#9D6FF7,#F59E0B);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.topbar-actions{display:flex;align-items:center;gap:12px}
+.avatar{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--purple),var(--purple-dark));display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:white;cursor:pointer;border:2px solid var(--border2)}
+.badge{display:inline-flex;align-items:center;padding:3px 8px;border-radius:99px;font-size:11px;font-weight:600;letter-spacing:0.4px}
+.badge-purple{background:rgba(124,58,237,0.2);color:var(--purple-light);border:1px solid rgba(124,58,237,0.3)}
+.badge-gold{background:rgba(245,158,11,0.15);color:var(--gold);border:1px solid rgba(245,158,11,0.25)}
+.badge-success{background:rgba(16,185,129,0.15);color:var(--success);border:1px solid rgba(16,185,129,0.25)}
+.badge-danger{background:rgba(239,68,68,0.15);color:var(--danger);border:1px solid rgba(239,68,68,0.25)}
+.badge-teal{background:rgba(14,165,233,0.15);color:var(--teal);border:1px solid rgba(14,165,233,0.25)}
+
+/* NAV */
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;z-index:100;background:rgba(26,16,37,0.95);backdrop-filter:blur(20px);border-top:1px solid var(--border);display:flex;padding:8px 0 max(8px,env(safe-area-inset-bottom))}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 4px;cursor:pointer;transition:all 0.2s;border:none;background:transparent;color:var(--text4)}
+.nav-item.active{color:var(--purple-light)}
+.nav-item svg{width:22px;height:22px;stroke-width:1.8}
+.nav-item span{font-size:10px;font-weight:500;letter-spacing:0.3px}
+.nav-dot{width:4px;height:4px;border-radius:50%;background:var(--purple);position:absolute;bottom:2px}
+
+/* SCREENS */
+.screen{display:none;flex-direction:column;padding:20px;padding-bottom:80px;animation:fadeIn 0.3s ease}
+.screen.active{display:flex}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+/* CARDS */
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:20px}
+.card-sm{background:var(--card);border:1px solid var(--border);border-radius:var(--r2);padding:16px}
+.card-accent{background:linear-gradient(135deg,rgba(124,58,237,0.15),rgba(91,33,182,0.08));border:1px solid rgba(124,58,237,0.3);border-radius:var(--r);padding:20px}
+
+/* STAT CARDS */
+.stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r2);padding:16px;display:flex;flex-direction:column;gap:6px;position:relative;overflow:hidden}
+.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+.stat-card.confirmed::before{background:linear-gradient(90deg,var(--success),#059669)}
+.stat-card.atrisk::before{background:linear-gradient(90deg,var(--gold),#D97706)}
+.stat-card.projected::before{background:linear-gradient(90deg,var(--purple),var(--teal))}
+.stat-label{font-size:11px;color:var(--text3);font-weight:500;letter-spacing:0.4px;text-transform:uppercase}
+.stat-value{font-family:'Syne',sans-serif;font-size:22px;font-weight:700}
+.stat-value.confirmed{color:var(--success)}
+.stat-value.atrisk{color:var(--gold)}
+.stat-value.projected{background:linear-gradient(135deg,var(--purple-light),var(--teal));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+
+/* SECTION HEADERS */
+.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.section-title{font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--text)}
+.section-sub{font-size:13px;color:var(--text3)}
+
+/* BOOKING CARDS */
+.booking-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r2);padding:16px;display:flex;flex-direction:column;gap:10px;margin-bottom:12px;transition:border-color 0.2s}
+.booking-card:hover{border-color:var(--border2)}
+.booking-card-header{display:flex;align-items:center;justify-content:space-between}
+.booking-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.booking-time{font-family:'Syne',sans-serif;font-size:15px;font-weight:600}
+.booking-info{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.booking-info-item{display:flex;flex-direction:column;gap:2px}
+.booking-info-label{font-size:11px;color:var(--text4);text-transform:uppercase;letter-spacing:0.4px}
+.booking-info-value{font-size:14px;color:var(--text2);font-weight:500}
+.booking-actions{display:flex;gap:8px}
+
+/* CALENDAR */
+.calendar-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:20px}
+.cal-day-header{text-align:center;font-size:11px;color:var(--text4);font-weight:600;padding:4px;text-transform:uppercase;letter-spacing:0.4px}
+.cal-day{aspect-ratio:1;display:flex;align-items:center;justify-content:center;border-radius:8px;cursor:pointer;font-size:13px;font-weight:500;transition:all 0.15s;position:relative;border:1px solid transparent}
+.cal-day:hover:not(.empty):not(.disabled){background:var(--bg3);border-color:var(--border)}
+.cal-day.today{background:rgba(124,58,237,0.15);border-color:var(--purple);color:var(--purple-light);font-weight:700}
+.cal-day.selected{background:var(--purple);color:white;border-color:var(--purple)}
+.cal-day.has-booking::after{content:'';position:absolute;bottom:3px;left:50%;transform:translateX(-50%);width:4px;height:4px;border-radius:50%;background:var(--gold)}
+.cal-day.empty{pointer-events:none}
+.cal-day.disabled{color:var(--text4);pointer-events:none}
+.cal-day.available{background:rgba(16,185,129,0.08);border-color:rgba(16,185,129,0.2);color:var(--success)}
+
+/* SLOTS */
+.slots-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.slot{border:1px solid var(--border);border-radius:10px;padding:10px 6px;text-align:center;cursor:pointer;transition:all 0.15s;font-size:13px;font-weight:500}
+.slot.available{border-color:rgba(16,185,129,0.3);color:var(--success);background:rgba(16,185,129,0.05)}
+.slot.available:hover{background:rgba(16,185,129,0.15)}
+.slot.booked{border-color:rgba(239,68,68,0.2);color:var(--text4);background:rgba(239,68,68,0.05);pointer-events:none}
+.slot.selected{background:var(--purple);border-color:var(--purple);color:white}
+
+/* PROGRESS */
+.progress-bar{height:8px;background:var(--bg3);border-radius:99px;overflow:hidden;margin:8px 0}
+.progress-fill{height:100%;border-radius:99px;transition:width 0.5s ease}
+.progress-purple{background:linear-gradient(90deg,var(--purple),var(--purple-light))}
+.progress-gold{background:linear-gradient(90deg,var(--gold),var(--gold-light))}
+.progress-success{background:linear-gradient(90deg,var(--success),#34D399)}
+
+/* TOGGLE */
+.toggle-group{display:flex;background:var(--bg3);border-radius:10px;padding:4px;gap:4px}
+.toggle-option{flex:1;padding:8px;text-align:center;border-radius:7px;cursor:pointer;font-size:13px;font-weight:500;transition:all 0.2s;border:none;background:transparent;color:var(--text3)}
+.toggle-option.active{background:var(--purple);color:white}
+
+/* SHARE LINK */
+.share-link-box{background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:14px 16px;display:flex;align-items:center;gap:10px;cursor:pointer;transition:border-color 0.2s}
+.share-link-box:hover{border-color:var(--border2)}
+.share-link-url{flex:1;font-size:13px;color:var(--purple-light);font-family:monospace;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.copy-btn{background:rgba(124,58,237,0.2);border:none;color:var(--purple-light);padding:6px 12px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;transition:all 0.2s}
+.copy-btn:hover{background:rgba(124,58,237,0.4)}
+
+/* TOAST */
+.toast{position:fixed;top:80px;right:20px;z-index:9998;background:var(--card2);border:1px solid var(--border2);border-radius:12px;padding:14px 18px;font-size:14px;color:var(--text);box-shadow:var(--shadow);transform:translateX(120%);transition:transform 0.3s;max-width:300px;display:flex;align-items:center;gap:10px}
+.toast.show{transform:translateX(0)}
+.toast.success{border-color:rgba(16,185,129,0.4)}
+.toast.error{border-color:rgba(239,68,68,0.4)}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:1000;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity 0.3s;backdrop-filter:blur(8px)}
+.modal-overlay.open{opacity:1;pointer-events:all}
+.modal{background:var(--bg2);border:1px solid var(--border);border-radius:24px 24px 0 0;padding:24px;width:100%;max-width:500px;max-height:85vh;overflow-y:auto;transform:translateY(100%);transition:transform 0.3s}
+.modal-overlay.open .modal{transform:translateY(0)}
+.modal-handle{width:40px;height:4px;background:var(--bg4);border-radius:99px;margin:0 auto 20px}
+.modal-title{font-family:'Syne',sans-serif;font-size:20px;font-weight:700;margin-bottom:20px}
+.modal-actions{display:flex;gap:12px;margin-top:20px}
+.modal-actions .btn-primary{flex:1}
+
+/* PUBLIC BOOKING PAGE */
+#public-booking{display:none;flex-direction:column;min-height:100vh;background:var(--bg)}
+.public-header{background:linear-gradient(135deg,#2D1B44,#1A1025);padding:40px 24px 60px;text-align:center;position:relative}
+.public-avatar{width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,var(--purple),var(--purple-dark));display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:28px;font-weight:700;color:white;margin:0 auto 16px;border:3px solid rgba(124,58,237,0.4)}
+.public-name{font-family:'Syne',sans-serif;font-size:26px;font-weight:800}
+.public-sub{color:var(--text3);margin-top:6px;font-size:15px}
+.public-body{padding:24px;margin-top:-24px}
+.service-pill{display:inline-flex;align-items:center;gap:6px;background:rgba(124,58,237,0.15);border:1px solid rgba(124,58,237,0.3);border-radius:99px;padding:6px 14px;font-size:13px;font-weight:500;color:var(--purple-light);margin:4px}
+.session-type-card{border:2px solid var(--border);border-radius:14px;padding:16px;cursor:pointer;transition:all 0.2s;flex:1}
+.session-type-card.selected{border-color:var(--purple);background:rgba(124,58,237,0.1)}
+.session-type-card h4{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;margin-bottom:4px}
+
+/* DEPOSIT INFO */
+.deposit-info{background:linear-gradient(135deg,rgba(245,158,11,0.1),rgba(245,158,11,0.05));border:1px solid rgba(245,158,11,0.25);border-radius:14px;padding:16px}
+
+/* EMPTY STATE */
+.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:48px 24px;gap:12px;text-align:center}
+.empty-icon{width:64px;height:64px;background:var(--bg3);border-radius:20px;display:flex;align-items:center;justify-content:center;margin-bottom:8px}
+
+/* SCROLLABLE TABS */
+.scroll-tabs{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;margin-bottom:16px;scrollbar-width:none}
+.scroll-tabs::-webkit-scrollbar{display:none}
+.scroll-tab{flex-shrink:0;padding:8px 16px;border-radius:99px;border:1px solid var(--border);background:transparent;color:var(--text3);font-size:13px;font-weight:500;cursor:pointer;transition:all 0.2s;white-space:nowrap}
+.scroll-tab.active{background:var(--purple);border-color:var(--purple);color:white}
+
+/* CLIENT INFO CARD */
+.client-history{display:flex;align-items:center;gap:8px;background:rgba(14,165,233,0.1);border:1px solid rgba(14,165,233,0.25);border-radius:10px;padding:10px 14px;font-size:13px;color:var(--teal);margin-top:8px}
+
+/* OFFLINE INDICATOR */
+.offline-bar{background:rgba(239,68,68,0.15);border-bottom:1px solid rgba(239,68,68,0.3);padding:6px 20px;display:none;align-items:center;gap:8px;font-size:12px;color:var(--danger)}
+.offline-bar.show{display:flex}
+
+/* SWITCH */
+.switch{position:relative;display:inline-block;width:44px;height:24px}
+.switch input{opacity:0;width:0;height:0}
+.switch-slider{position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:var(--bg4);border-radius:99px;transition:0.2s;border:1px solid var(--border)}
+.switch-slider:before{content:'';position:absolute;height:18px;width:18px;left:2px;bottom:2px;background:var(--text4);border-radius:50%;transition:0.2s}
+input:checked+.switch-slider{background:var(--purple);border-color:var(--purple)}
+input:checked+.switch-slider:before{transform:translateX(20px);background:white}
+
+/* LOADER */
+.loader{width:20px;height:20px;border:2px solid var(--border);border-top-color:var(--purple);border-radius:50%;animation:spin 0.6s linear infinite;display:inline-block}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* EARNINGS CHART */
+.chart-bar{display:flex;flex-direction:column;align-items:center;gap:4px;flex:1}
+.chart-bar-fill{width:100%;max-width:32px;border-radius:6px 6px 0 0;background:linear-gradient(180deg,var(--purple-light),var(--purple));min-height:4px;transition:height 0.6s ease}
+.chart-bar-label{font-size:10px;color:var(--text4);text-align:center}
+
+/* WAITLIST */
+.waitlist-item{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border)}
+.waitlist-item:last-child{border-bottom:none}
+
+/* DEPOSIT METHOD ICONS */
+.pay-option{border:2px solid var(--border);border-radius:12px;padding:14px;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;transition:all 0.2s;flex:1}
+.pay-option.selected{border-color:var(--purple);background:rgba(124,58,237,0.1)}
+.pay-option-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px}
+.pay-option-label{font-size:12px;font-weight:600;color:var(--text2)}
+
+/* ONBOARDING */
+.onboard-step{display:none;flex-direction:column;align-items:center;padding:40px 24px;text-align:center;gap:16px}
+.onboard-step.active{display:flex}
+.onboard-icon{width:80px;height:80px;border-radius:24px;display:flex;align-items:center;justify-content:center;font-size:36px;margin-bottom:8px}
+
+/* SEARCH */
+.search-box{display:flex;align-items:center;gap:10px;background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:10px 14px;margin-bottom:16px}
+.search-box input{flex:1;background:transparent;border:none;outline:none;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px}
+
+/* NOTIFICATION BELL */
+.notif-dot{width:8px;height:8px;background:var(--danger);border-radius:50%;position:absolute;top:-2px;right:-2px;border:2px solid var(--bg)}
+
+/* DEPOSIT WINDOW SELECTOR */
+.day-deposit{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)}
+.day-deposit:last-child{border-bottom:none}
+.day-deposit input[type=number]{width:60px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:6px 10px;color:var(--text);font-size:14px;text-align:center}
+
+/* FACE TO FACE BADGE */
+.f2f-badge{display:inline-flex;align-items:center;gap:4px;background:rgba(14,165,233,0.1);border:1px solid rgba(14,165,233,0.25);border-radius:99px;padding:4px 10px;font-size:11px;color:var(--teal);font-weight:600}
+.online-badge{display:inline-flex;align-items:center;gap:4px;background:rgba(124,58,237,0.1);border:1px solid rgba(124,58,237,0.25);border-radius:99px;padding:4px 10px;font-size:11px;color:var(--purple-light);font-weight:600}
+
+.divider-line{height:1px;background:var(--border);margin:20px 0}
+.text-sm{font-size:13px;color:var(--text3)}
+.text-xs{font-size:11px;color:var(--text4)}
+.fw-700{font-weight:700}
+.mt-8{margin-top:8px}
+.mt-12{margin-top:12px}
+.mt-16{margin-top:16px}
+.mt-20{margin-top:20px}
+.gap-8{gap:8px}
+.gap-12{gap:12px}
+.gap-16{gap:16px}
+.flex{display:flex}
+.flex-col{flex-direction:column}
+.items-center{align-items:center}
+.justify-between{justify-content:space-between}
+.justify-center{justify-content:center}
+.w-full{width:100%}
+.flex-1{flex:1}
+.relative{position:relative}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.input-with-unit{position:relative;display:flex;align-items:center}
+.input-with-unit input{padding-right:40px;width:100%}
+.input-unit{position:absolute;right:12px;color:var(--text4);font-size:13px}
+
+@media(max-width:380px){
+  .stats-grid{grid-template-columns:1fr 1fr}
+  .stat-card:last-child{grid-column:1/-1}
+  .form-row{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- SPLASH -->
+<div id="splash">
+  <div class="splash-logo">
+    <img src="/mnt/user-data/uploads/Reserbook_Logo.png" alt="ReserBook" onerror="this.style.display='none';this.parentElement.innerHTML='<span style=\'font-family:Syne,sans-serif;font-size:40px;font-weight:800;color:white\'>R</span>'">
+  </div>
+  <div class="splash-title">ReserBook</div>
+  <div style="font-size:14px;color:var(--text3)">Book smarter. Get paid.</div>
+  <div class="splash-bar"><div class="splash-bar-inner"></div></div>
+</div>
+
+<!-- OFFLINE BAR -->
+<div class="offline-bar" id="offline-bar">
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 1l22 22M16.72 11.06A10.94 10.94 0 0 1 19 12.55M5 12.55a10.94 10.94 0 0 1 5.17-2.39M10.71 5.05A16 16 0 0 1 22.56 9M1.42 9a15.91 15.91 0 0 1 4.7-2.88M8.53 16.11a6 6 0 0 1 6.95 0M12 20h.01"/></svg>
+  Offline — changes will sync when reconnected
+</div>
+
+<!-- AUTH SCREEN -->
+<div id="auth-screen">
+  <div class="auth-logo">
+    <div class="auth-logo-img">
+      <img src="/mnt/user-data/uploads/Reserbook_Logo.png" alt="ReserBook" onerror="this.style.display='none';this.parentElement.innerHTML='<span style=\'font-family:Syne,sans-serif;font-size:22px;font-weight:800;color:white\'>R</span>'">
+    </div>
+    <span class="auth-logo-text">ReserBook</span>
+  </div>
+  <div class="auth-card">
+    <div class="auth-tabs">
+      <button class="auth-tab active" onclick="switchAuthTab('login')">Log In</button>
+      <button class="auth-tab" onclick="switchAuthTab('register')">Register</button>
+    </div>
+
+    <!-- LOGIN FORM -->
+    <div id="login-form" class="auth-form">
+      <div class="form-group">
+        <label>Email Address</label>
+        <input type="email" id="login-email" placeholder="you@email.com">
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="login-password" placeholder="••••••••">
+      </div>
+      <div style="display:flex;justify-content:flex-end">
+        <button class="btn-ghost" style="font-size:13px;border:none;color:var(--purple-light)">Forgot password?</button>
+      </div>
+      <button class="btn-primary" onclick="doLogin()">Log In to ReserBook</button>
+      <div class="divider">or</div>
+      <button class="btn-secondary" onclick="demoLogin()" style="text-align:center">
+        ✨ Try Demo Account
+      </button>
+    </div>
+
+    <!-- REGISTER FORM -->
+    <div id="register-form" class="auth-form" style="display:none">
+      <div class="form-row">
+        <div class="form-group">
+          <label>First Name</label>
+          <input type="text" id="reg-fname" placeholder="Maria">
+        </div>
+        <div class="form-group">
+          <label>Last Name</label>
+          <input type="text" id="reg-lname" placeholder="Santos">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Freelancing Services</label>
+        <input type="text" id="reg-services" placeholder="Math Tutoring, Life Coaching...">
+      </div>
+      <div class="form-group">
+        <label>Hourly Rate (PHP)</label>
+        <div class="input-with-unit">
+          <input type="number" id="reg-rate" placeholder="500">
+          <span class="input-unit">₱/hr</span>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Booking Deposit %</label>
+        <div class="input-with-unit">
+          <input type="number" id="reg-deposit" placeholder="25" min="5" max="100">
+          <span class="input-unit">%</span>
+        </div>
+        <span class="form-hint">💡 Most freelancers set 20–30%. Higher % = more protection.</span>
+      </div>
+      <div class="form-group">
+        <label>Session Types</label>
+        <select id="reg-session-type">
+          <option value="both">Online & Face-to-Face</option>
+          <option value="online">Online Only</option>
+          <option value="f2f">Face-to-Face Only</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Service Area / Meeting Location <span style="color:var(--text4)">(optional)</span></label>
+        <input type="text" id="reg-location" placeholder="Quezon City, Metro Manila">
+      </div>
+      <div class="form-group">
+        <label>Email Address</label>
+        <input type="email" id="reg-email" placeholder="you@email.com">
+      </div>
+      <div class="form-group">
+        <label>Mobile Number</label>
+        <input type="tel" id="reg-phone" placeholder="+63 9XX XXX XXXX">
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="reg-password" placeholder="••••••••">
+      </div>
+      <div class="form-group">
+        <label>Confirm Password</label>
+        <input type="password" id="reg-confirm" placeholder="••••••••">
+      </div>
+      <button class="btn-primary" onclick="doRegister()">Create My ReserBook Profile</button>
+    </div>
+  </div>
+</div>
+
+<!-- PUBLIC BOOKING PAGE -->
+<div id="public-booking">
+  <div class="public-header">
+    <div class="public-avatar" id="pub-avatar">MS</div>
+    <h1 class="public-name" id="pub-name">Maria Santos</h1>
+    <p class="public-sub" id="pub-tagline">Math Tutor & Life Coach</p>
+    <div style="display:flex;justify-content:center;flex-wrap:wrap;margin-top:14px" id="pub-services-pills"></div>
+  </div>
+  <div class="public-body">
+    <!-- Session type selection -->
+    <div id="pub-session-choice">
+      <h3 style="font-family:'Syne',sans-serif;font-size:16px;font-weight:700;margin-bottom:12px">Session Type</h3>
+      <div style="display:flex;gap:10px;margin-bottom:20px">
+        <div class="session-type-card selected" id="pub-online-card" onclick="selectPubSession('online')">
+          <div style="font-size:24px;margin-bottom:6px">💻</div>
+          <h4>Online</h4>
+          <p style="font-size:12px;color:var(--text3)">Video call session</p>
+        </div>
+        <div class="session-type-card" id="pub-f2f-card" onclick="selectPubSession('f2f')">
+          <div style="font-size:24px;margin-bottom:6px">📍</div>
+          <h4>Face-to-Face</h4>
+          <p style="font-size:12px;color:var(--text3)" id="pub-location-text">Metro Manila</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Calendar -->
+    <div class="card" style="margin-bottom:16px">
+      <div class="section-header">
+        <button onclick="changeMonth(-1)" class="btn-ghost" style="padding:6px 10px">‹</button>
+        <span id="pub-month-label" style="font-family:'Syne',sans-serif;font-weight:700"></span>
+        <button onclick="changeMonth(1)" class="btn-ghost" style="padding:6px 10px">›</button>
+      </div>
+      <div class="calendar-grid" id="pub-cal-headers"></div>
+      <div class="calendar-grid" id="pub-calendar"></div>
+    </div>
+
+    <!-- Time slots -->
+    <div id="pub-slots-section" style="margin-bottom:16px;display:none">
+      <h3 style="font-family:'Syne',sans-serif;font-size:16px;font-weight:700;margin-bottom:12px">Available Slots — <span id="pub-selected-date"></span></h3>
+      <div class="slots-grid" id="pub-slots"></div>
+    </div>
+
+    <!-- Deposit info -->
+    <div class="deposit-info" style="margin-bottom:16px" id="pub-deposit-box">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <span style="font-size:14px;color:var(--text2);font-weight:600">Session Details</span>
+        <span style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--gold)" id="pub-rate-display">₱500/hr</span>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:13px">
+        <div><div style="color:var(--text4);margin-bottom:2px">Deposit Required</div><div style="color:var(--gold);font-weight:600" id="pub-deposit-display">₱125 (25%)</div></div>
+        <div><div style="color:var(--text4);margin-bottom:2px">Cancellation Window</div><div style="color:var(--text2);font-weight:600" id="pub-cancel-window">24 hours</div></div>
+        <div><div style="color:var(--text4);margin-bottom:2px">Deposit Applied To</div><div style="color:var(--success);font-weight:600">Session fee ✓</div></div>
+        <div><div style="color:var(--text4);margin-bottom:2px">Late Cancel</div><div style="color:var(--danger);font-weight:600">Deposit forfeited</div></div>
+      </div>
+    </div>
+
+    <!-- Book now button -->
+    <div id="pub-book-btn-section">
+      <button class="btn-primary w-full" onclick="showBookingModal()" id="pub-book-btn" disabled style="opacity:0.5">
+        Select a date and time to book
+      </button>
+    </div>
+
+    <!-- Waitlist section -->
+    <div style="margin-top:16px;text-align:center">
+      <button class="btn-ghost w-full" onclick="showWaitlistModal()">Join Waitlist for a Specific Date</button>
+    </div>
+
+    <div style="margin-top:24px;text-align:center">
+      <a href="#" onclick="showMainApp()" style="font-size:13px;color:var(--text4);text-decoration:none">
+        Powered by <span style="color:var(--purple-light);font-weight:600">ReserBook</span> — Free for Freelancers
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- BOOKING MODAL (on public page) -->
+<div class="modal-overlay" id="booking-modal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Confirm Your Booking</div>
+    <div style="background:var(--bg3);border-radius:12px;padding:14px;margin-bottom:16px" id="booking-summary-box">
+      <div style="font-size:13px;color:var(--text3);margin-bottom:4px">Your selected slot</div>
+      <div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700" id="booking-summary-time">Wed, Jun 25 · 2:00 PM</div>
+      <div style="display:flex;gap:8px;margin-top:8px" id="booking-summary-badges"></div>
+    </div>
+    <div class="auth-form">
+      <div class="form-group">
+        <label>Your Full Name</label>
+        <input type="text" id="client-name" placeholder="Juan dela Cruz">
+      </div>
+      <div class="form-group">
+        <label>Email Address</label>
+        <input type="email" id="client-email" placeholder="juan@email.com">
+      </div>
+      <div class="form-group">
+        <label>Mobile Number</label>
+        <input type="tel" id="client-phone" placeholder="+63 9XX XXX XXXX">
+      </div>
+      <div class="form-group">
+        <label>Service Needed</label>
+        <select id="client-service">
+          <option value="">Select a service...</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Notes <span style="color:var(--text4)">(optional)</span></label>
+        <textarea id="client-notes" placeholder="Any specific topics or goals for this session?"></textarea>
+      </div>
+      <div class="divider-line" style="margin:8px 0"></div>
+      <div style="font-size:14px;font-weight:600;margin-bottom:10px">Payment Method</div>
+      <div style="display:flex;gap:10px">
+        <div class="pay-option selected" id="pay-gcash" onclick="selectPayMethod('gcash')">
+          <div class="pay-option-icon" style="background:rgba(10,102,194,0.15)">💙</div>
+          <div class="pay-option-label">GCash</div>
+        </div>
+        <div class="pay-option" id="pay-card" onclick="selectPayMethod('card')">
+          <div class="pay-option-icon" style="background:rgba(245,158,11,0.15)">💳</div>
+          <div class="pay-option-label">Card</div>
+        </div>
+        <div class="pay-option" id="pay-cash" onclick="selectPayMethod('cash')">
+          <div class="pay-option-icon" style="background:rgba(16,185,129,0.15)">💵</div>
+          <div class="pay-option-label">Cash</div>
+        </div>
+      </div>
+      <div id="pay-gcash-info" style="background:rgba(10,102,194,0.1);border:1px solid rgba(10,102,194,0.25);border-radius:10px;padding:12px;font-size:13px;color:#60A5FA">
+        📱 Pay via GCash to <strong>09XX XXX XXXX</strong> and upload your screenshot for confirmation.
+      </div>
+      <div id="pay-cash-info" style="display:none;background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.25);border-radius:10px;padding:12px;font-size:13px;color:var(--success)">
+        💵 Cash deposit to be confirmed by the freelancer in person or via screenshot.
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-ghost" onclick="closeModal('booking-modal')">Cancel</button>
+      <button class="btn-primary flex-1" onclick="confirmBooking()">
+        Pay Deposit &amp; Book Slot
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- WAITLIST MODAL -->
+<div class="modal-overlay" id="waitlist-modal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Join Waitlist</div>
+    <p style="font-size:14px;color:var(--text3);margin-bottom:16px">Get notified if a slot opens up. No deposit needed — just your email.</p>
+    <div class="auth-form">
+      <div class="form-group">
+        <label>Your Email</label>
+        <input type="email" id="waitlist-email" placeholder="juan@email.com">
+      </div>
+      <div class="form-group">
+        <label>Preferred Date (optional)</label>
+        <input type="date" id="waitlist-date">
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-ghost" onclick="closeModal('waitlist-modal')">Cancel</button>
+      <button class="btn-primary flex-1" onclick="joinWaitlist()">Join Waitlist</button>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="main-app">
+  <div class="topbar">
+    <a href="#" class="topbar-logo" onclick="return false">
+      <div class="topbar-logo-img">
+        <img src="/mnt/user-data/uploads/Reserbook_Logo.png" alt="ReserBook" onerror="this.style.display='none';this.parentElement.innerHTML='<span style=\'font-family:Syne,sans-serif;font-size:16px;font-weight:800;color:white\'>R</span>'">
+      </div>
+      <span class="topbar-logo-text">ReserBook</span>
+    </a>
+    <div class="topbar-actions">
+      <button onclick="copyShareLink()" style="background:rgba(124,58,237,0.15);border:1px solid rgba(124,58,237,0.3);color:var(--purple-light);padding:7px 12px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:5px">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+        Share
+      </button>
+      <div class="relative" onclick="showScreen('settings')">
+        <div class="avatar" id="topbar-avatar">MS</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCREENS -->
+  <!-- DASHBOARD -->
+  <div class="screen active" id="screen-dashboard">
+    <div style="margin-bottom:20px">
+      <div style="font-size:13px;color:var(--text3);margin-bottom:4px" id="greeting-text">Good morning</div>
+      <div style="font-family:'Syne',sans-serif;font-size:26px;font-weight:800" id="dash-name">Maria Santos 👋</div>
+    </div>
+
+    <!-- Earnings -->
+    <div class="stats-grid">
+      <div class="stat-card confirmed">
+        <div class="stat-label">Confirmed</div>
+        <div class="stat-value confirmed" id="stat-confirmed">₱0</div>
+        <div style="font-size:11px;color:var(--text4)">Locked in</div>
+      </div>
+      <div class="stat-card atrisk">
+        <div class="stat-label">At-Risk</div>
+        <div class="stat-value atrisk" id="stat-atrisk">₱0</div>
+        <div style="font-size:11px;color:var(--text4)">Refundable</div>
+      </div>
+      <div class="stat-card projected">
+        <div class="stat-label">Projected</div>
+        <div class="stat-value projected" id="stat-projected">₱0</div>
+        <div style="font-size:11px;color:var(--text4)">If all show up</div>
+      </div>
+    </div>
+
+    <!-- Monthly Goal -->
+    <div class="card" style="margin-bottom:16px" id="goal-card">
+      <div class="section-header">
+        <div>
+          <div style="font-family:'Syne',sans-serif;font-size:15px;font-weight:700">Monthly Goal</div>
+          <div style="font-size:12px;color:var(--text3)" id="goal-sub">₱0 of ₱0 earned</div>
+        </div>
+        <button class="btn-ghost" style="font-size:12px;padding:6px 10px" onclick="showGoalModal()">Edit</button>
+      </div>
+      <div class="progress-bar"><div class="progress-fill progress-gold" id="goal-bar" style="width:0%"></div></div>
+      <div id="goal-nudge" style="font-size:12px;color:var(--text3);margin-top:6px;display:none"></div>
+    </div>
+
+    <!-- Share link -->
+    <div class="card" style="margin-bottom:16px">
+      <div style="font-family:'Syne',sans-serif;font-size:15px;font-weight:700;margin-bottom:10px">Your Booking Link</div>
+      <div class="share-link-box" onclick="copyShareLink()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--purple-light)" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+        <div class="share-link-url" id="share-url">reserbook.app/u/maria-santos</div>
+        <button class="copy-btn">Copy</button>
+      </div>
+    </div>
+
+    <!-- Upcoming bookings -->
+    <div class="section-header">
+      <span class="section-title">Upcoming Sessions</span>
+      <button class="btn-ghost" style="font-size:12px;padding:6px 10px" onclick="showScreen('bookings')">View All</button>
+    </div>
+    <div id="upcoming-list"></div>
+
+    <!-- Quick nudge -->
+    <div id="open-slots-nudge" style="display:none" class="card-accent">
+      <div style="display:flex;align-items:center;gap:10px">
+        <span style="font-size:24px">📢</span>
+        <div>
+          <div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:700">Share your booking link!</div>
+          <div style="font-size:13px;color:var(--text3);margin-top:2px" id="nudge-text">You have open slots this week.</div>
+        </div>
+      </div>
+      <button class="btn-primary" style="margin-top:12px;width:100%;font-size:14px" onclick="copyShareLink()">Share Booking Page</button>
+    </div>
+  </div>
+
+  <!-- BOOKINGS SCREEN -->
+  <div class="screen" id="screen-bookings">
+    <div style="margin-bottom:16px;display:flex;align-items:center;justify-content:space-between">
+      <h2 style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800">Bookings</h2>
+      <button class="btn-primary" style="font-size:13px;padding:10px 16px" onclick="showAddSlotModal()">+ Add Slot</button>
+    </div>
+    <div class="search-box">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text4)" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" placeholder="Search clients..." oninput="filterBookings(this.value)">
+    </div>
+    <div class="scroll-tabs" id="booking-filter-tabs">
+      <button class="scroll-tab active" onclick="filterBookingsByStatus('all',this)">All</button>
+      <button class="scroll-tab" onclick="filterBookingsByStatus('confirmed',this)">Confirmed</button>
+      <button class="scroll-tab" onclick="filterBookingsByStatus('pending',this)">Pending</button>
+      <button class="scroll-tab" onclick="filterBookingsByStatus('cancelled',this)">Cancelled</button>
+      <button class="scroll-tab" onclick="filterBookingsByStatus('noshow',this)">No-show</button>
+    </div>
+    <div id="bookings-list"></div>
+  </div>
+
+  <!-- CALENDAR SCREEN -->
+  <div class="screen" id="screen-calendar">
+    <div style="margin-bottom:16px;display:flex;align-items:center;justify-content:space-between">
+      <h2 style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800">Schedule</h2>
+      <button class="btn-primary" style="font-size:13px;padding:10px 16px" onclick="showAddSlotModal()">+ New Slot</button>
+    </div>
+    <div class="card" style="margin-bottom:16px">
+      <div class="section-header">
+        <button onclick="changeFreelancerMonth(-1)" class="btn-ghost" style="padding:6px 10px">‹</button>
+        <span id="fl-month-label" style="font-family:'Syne',sans-serif;font-weight:700"></span>
+        <button onclick="changeFreelancerMonth(1)" class="btn-ghost" style="padding:6px 10px">›</button>
+      </div>
+      <div class="calendar-grid" id="fl-cal-headers"></div>
+      <div class="calendar-grid" id="fl-calendar"></div>
+    </div>
+    <div id="fl-day-detail" style="display:none">
+      <div class="section-header">
+        <span class="section-title" id="fl-day-title">Wednesday, June 25</span>
+      </div>
+      <div id="fl-day-slots"></div>
+    </div>
+    <div id="fl-empty" class="empty-state">
+      <div class="empty-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--text4)" stroke-width="1.5"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
+      <div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:700">No slots yet</div>
+      <div style="font-size:13px;color:var(--text3)">Add your available slots to start accepting bookings.</div>
+      <button class="btn-primary" style="margin-top:8px" onclick="showAddSlotModal()">Add First Slot</button>
+    </div>
+  </div>
+
+  <!-- CLIENTS SCREEN -->
+  <div class="screen" id="screen-clients">
+    <div style="margin-bottom:16px">
+      <h2 style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800">Clients</h2>
+      <p style="font-size:13px;color:var(--text3);margin-top:4px">Booking history & client insights</p>
+    </div>
+    <div class="search-box">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text4)" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" placeholder="Search clients..." oninput="filterClients(this.value)">
+    </div>
+    <div id="clients-list"></div>
+  </div>
+
+  <!-- SETTINGS SCREEN -->
+  <div class="screen" id="screen-settings">
+    <div style="margin-bottom:20px;display:flex;align-items:center;gap:12px">
+      <div class="avatar" style="width:52px;height:52px;font-size:20px" id="settings-avatar">MS</div>
+      <div>
+        <div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700" id="settings-name">Maria Santos</div>
+        <div style="font-size:13px;color:var(--text3)" id="settings-email">maria@email.com</div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:12px">
+      <div style="font-family:'Syne',sans-serif;font-size:15px;font-weight:700;margin-bottom:14px">Deposit Settings</div>
+      <div style="font-size:13px;color:var(--text3);margin-bottom:10px">Set deposit % by day of week</div>
+      <div id="deposit-by-day"></div>
+    </div>
+
+    <div class="card" style="margin-bottom:12px">
+      <div style="font-family:'Syne',sans-serif;font-size:15px;font-weight:700;margin-bottom:14px">Cancellation Policy</div>
+      <div class="form-group">
+        <label>Refund Window (hours before session)</label>
+        <div class="input-with-unit">
+          <input type="number" id="cancel-window-input" value="24" min="1" max="168">
+          <span class="input-unit">hrs</span>
+        </div>
+        <span class="form-hint">Clients who cancel within this window forfeit their deposit.</span>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:12px">
+      <div style="font-family:'Syne',sans-serif;font-size:15px;font-weight:700;margin-bottom:14px">Session Settings</div>
+      <div class="form-group" style="margin-bottom:14px">
+        <label>Session Types Offered</label>
+        <select id="settings-session-type" onchange="saveSettings()">
+          <option value="both">Online & Face-to-Face</option>
+          <option value="online">Online Only</option>
+          <option value="f2f">Face-to-Face Only</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Meeting Location <span style="color:var(--text4)">(for F2F)</span></label>
+        <input type="text" id="settings-location" placeholder="Quezon City, Metro Manila">
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:12px">
+      <div style="font-family:'Syne',sans-serif;font-size:15px;font-weight:700;margin-bottom:14px">Monthly Goal</div>
+      <div class="form-group">
+        <label>Monthly Income Target (PHP)</label>
+        <div class="input-with-unit">
+          <input type="number" id="settings-goal" placeholder="20000" onchange="saveSettings()">
+          <span class="input-unit">₱</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:12px">
+      <div style="font-family:'Syne',sans-serif;font-size:15px;font-weight:700;margin-bottom:14px">Notifications</div>
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <div><div style="font-size:14px;font-weight:500">New booking alerts</div><div style="font-size:12px;color:var(--text3)">Email when a slot is booked</div></div>
+          <label class="switch"><input type="checkbox" checked><span class="switch-slider"></span></label>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <div><div style="font-size:14px;font-weight:500">Session reminders</div><div style="font-size:12px;color:var(--text3)">24h & 1h before each session</div></div>
+          <label class="switch"><input type="checkbox" checked><span class="switch-slider"></span></label>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <div><div style="font-size:14px;font-weight:500">Cancellation alerts</div><div style="font-size:12px;color:var(--text3)">When a client cancels</div></div>
+          <label class="switch"><input type="checkbox" checked><span class="switch-slider"></span></label>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:12px">
+      <div style="font-family:'Syne',sans-serif;font-size:15px;font-weight:700;margin-bottom:14px">Offline & Sync</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+        <div>
+          <div style="font-size:14px;font-weight:500">PWA Installed</div>
+          <div style="font-size:12px;color:var(--text3)">Add to home screen for offline access</div>
+        </div>
+        <span class="badge badge-success" id="pwa-status">Available</span>
+      </div>
+      <div id="offline-queue-info" style="background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.25);border-radius:10px;padding:12px;font-size:13px;color:var(--gold);display:none">
+        <strong id="queue-count">0</strong> pending action(s) waiting to sync
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:24px">
+      <div style="font-family:'Syne',sans-serif;font-size:15px;font-weight:700;margin-bottom:14px">Waitlist</div>
+      <div id="waitlist-list" style="max-height:200px;overflow-y:auto"></div>
+    </div>
+
+    <button class="btn-danger w-full" onclick="doLogout()" style="margin-bottom:24px">Log Out</button>
+  </div>
+
+  <!-- BOTTOM NAV -->
+  <nav class="bottom-nav">
+    <button class="nav-item active" onclick="showScreen('dashboard')" id="nav-dashboard">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>
+      <span>Dashboard</span>
+    </button>
+    <button class="nav-item" onclick="showScreen('bookings')" id="nav-bookings">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+      <span>Bookings</span>
+    </button>
+    <button class="nav-item" onclick="showScreen('calendar')" id="nav-calendar">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      <span>Schedule</span>
+    </button>
+    <button class="nav-item" onclick="showScreen('clients')" id="nav-clients">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      <span>Clients</span>
+    </button>
+    <button class="nav-item" onclick="showScreen('settings')" id="nav-settings">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      <span>Settings</span>
+    </button>
+  </nav>
+</div>
+
+<!-- ADD SLOT MODAL -->
+<div class="modal-overlay" id="add-slot-modal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Add Available Slot</div>
+    <div class="auth-form">
+      <div class="form-group">
+        <label>Date</label>
+        <input type="date" id="slot-date">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Start Time</label>
+          <input type="time" id="slot-start" value="09:00">
+        </div>
+        <div class="form-group">
+          <label>End Time</label>
+          <input type="time" id="slot-end" value="10:00">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Session Type</label>
+        <select id="slot-type">
+          <option value="online">Online</option>
+          <option value="f2f">Face-to-Face</option>
+          <option value="both">Both Available</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Notes (optional)</label>
+        <input type="text" id="slot-notes" placeholder="e.g., Advanced math only">
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-ghost" onclick="closeModal('add-slot-modal')">Cancel</button>
+      <button class="btn-primary flex-1" onclick="addSlot()">Add Slot</button>
+    </div>
+  </div>
+</div>
+
+<!-- BOOKING DETAIL MODAL -->
+<div class="modal-overlay" id="booking-detail-modal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="bd-title">Booking Details</div>
+    <div id="bd-content"></div>
+    <div class="modal-actions" id="bd-actions"></div>
+  </div>
+</div>
+
+<!-- GOAL MODAL -->
+<div class="modal-overlay" id="goal-modal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Set Monthly Goal</div>
+    <div class="form-group">
+      <label>Monthly Income Target (PHP)</label>
+      <div class="input-with-unit">
+        <input type="number" id="goal-input" placeholder="20000">
+        <span class="input-unit">₱</span>
+      </div>
+    </div>
+    <div class="modal-actions" style="margin-top:16px">
+      <button class="btn-ghost" onclick="closeModal('goal-modal')">Cancel</button>
+      <button class="btn-primary flex-1" onclick="saveGoal()">Save Goal</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast">
+  <span id="toast-icon">✓</span>
+  <span id="toast-msg">Copied!</span>
+</div>
+
+<script>
+// ── STATE ──────────────────────────────────────────────────────────────────
+let state = {
+  user: null,
+  bookings: [],
+  slots: [],
+  clients: [],
+  waitlist: [],
+  offlineQueue: [],
+  monthlyGoal: 0,
+  depositByDay: {0:25,1:25,2:25,3:25,4:25,5:30,6:30},
+  cancelWindow: 24,
+  sessionType: 'both',
+  location: '',
+  pubCalMonth: new Date(),
+  flCalMonth: new Date(),
+  selectedPubDate: null,
+  selectedPubSlot: null,
+  selectedPubSession: 'online',
+  selectedPayMethod: 'gcash',
+  filterStatus: 'all',
+  filterQuery: '',
+  isOnline: navigator.onLine
+};
+
+// Load from localStorage
+function loadState() {
+  try {
+    const saved = localStorage.getItem('reserbook_state');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      state = {...state, ...parsed};
+      state.pubCalMonth = new Date();
+      state.flCalMonth = new Date();
+    }
+  } catch(e){}
+}
+
+function saveState() {
+  try {
+    const toSave = {...state};
+    delete toSave.pubCalMonth;
+    delete toSave.flCalMonth;
+    localStorage.setItem('reserbook_state', JSON.stringify(toSave));
+  } catch(e){}
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────
+window.addEventListener('load', () => {
+  loadState();
+  // Offline detection
+  window.addEventListener('online', () => { state.isOnline = true; updateOfflineBar(); syncQueue(); });
+  window.addEventListener('offline', () => { state.isOnline = false; updateOfflineBar(); });
+  
+  setTimeout(() => {
+    document.getElementById('splash').classList.add('hide');
+    if (state.user) {
+      showMainApp();
+    } else {
+      document.getElementById('auth-screen').style.display = 'flex';
+    }
+  }, 2000);
+});
+
+function updateOfflineBar() {
+  document.getElementById('offline-bar').classList.toggle('show', !state.isOnline);
+}
+
+function syncQueue() {
+  if (state.isOnline && state.offlineQueue.length > 0) {
+    showToast('✓', `Synced ${state.offlineQueue.length} pending action(s)`, 'success');
+    state.offlineQueue = [];
+    saveState();
+    renderSettings();
+  }
+}
+
+// ── AUTH ──────────────────────────────────────────────────────────────────
+function switchAuthTab(tab) {
+  document.getElementById('login-form').style.display = tab === 'login' ? 'flex' : 'none';
+  document.getElementById('register-form').style.display = tab === 'register' ? 'flex' : 'none';
+  document.querySelectorAll('.auth-tab').forEach((t,i) => t.classList.toggle('active', (i===0&&tab==='login')||(i===1&&tab==='register')));
+}
+
+function doLogin() {
+  const email = document.getElementById('login-email').value.trim();
+  const pass = document.getElementById('login-password').value;
+  if (!email || !pass) { showToast('⚠️','Please fill in all fields','error'); return; }
+  if (!state.user || state.user.email !== email) {
+    showToast('⚠️','No account found. Try demo or register.','error'); return;
+  }
+  showMainApp();
+  showToast('👋', `Welcome back, ${state.user.firstName}!`, 'success');
+}
+
+function demoLogin() {
+  state.user = {
+    firstName:'Maria', lastName:'Santos', email:'maria@example.com',
+    phone:'+63 917 123 4567', services:'Math Tutoring, Life Coaching, Study Skills',
+    rate:500, deposit:25, sessionType:'both', location:'Quezon City, Metro Manila',
+    initials:'MS', slug:'maria-santos'
+  };
+  state.monthlyGoal = 20000;
+  state.cancelWindow = 24;
+  state.depositByDay = {0:25,1:25,2:25,3:25,4:25,5:30,6:30};
+  // Demo bookings
+  const today = new Date();
+  state.bookings = [
+    {id:'b1',clientName:'Juan dela Cruz',email:'juan@email.com',phone:'+63 912 000 0001',service:'Math Tutoring',date:fmtDateISO(addDays(today,2)),time:'09:00',endTime:'10:00',sessionType:'online',status:'confirmed',deposit:125,rate:500,notes:'Algebra review',payMethod:'gcash',bookingCount:4,noShow:false},
+    {id:'b2',clientName:'Ana Reyes',email:'ana@email.com',phone:'+63 917 000 0002',service:'Life Coaching',date:fmtDateISO(addDays(today,3)),time:'14:00',endTime:'15:00',sessionType:'f2f',status:'pending',deposit:150,rate:500,notes:'Goal setting session',payMethod:'cash',bookingCount:1,noShow:false},
+    {id:'b3',clientName:'Pedro Bautista',email:'pedro@email.com',phone:'+63 919 000 0003',service:'Study Skills',date:fmtDateISO(addDays(today,7)),time:'11:00',endTime:'12:00',sessionType:'online',status:'confirmed',deposit:125,rate:500,notes:'',payMethod:'gcash',bookingCount:2,noShow:false},
+    {id:'b4',clientName:'Lena Gomez',email:'lena@email.com',phone:'+63 920 000 0004',service:'Math Tutoring',date:fmtDateISO(addDays(today,-3)),time:'15:00',endTime:'16:00',sessionType:'online',status:'cancelled',deposit:125,rate:500,notes:'',payMethod:'gcash',bookingCount:1,noShow:false},
+  ];
+  state.slots = [
+    {id:'s1',date:fmtDateISO(addDays(today,1)),start:'09:00',end:'10:00',type:'both',notes:''},
+    {id:'s2',date:fmtDateISO(addDays(today,1)),start:'14:00',end:'15:00',type:'online',notes:''},
+    {id:'s3',date:fmtDateISO(addDays(today,4)),start:'10:00',end:'11:00',type:'both',notes:''},
+    {id:'s4',date:fmtDateISO(addDays(today,5)),start:'09:00',end:'10:00',type:'f2f',notes:'Face-to-face preferred'},
+  ];
+  state.waitlist = [
+    {email:'liza@email.com',date:fmtDateISO(addDays(today,2))},
+    {email:'rico@email.com',date:''}
+  ];
+  saveState();
+  showMainApp();
+  showToast('✨','Demo loaded — explore ReserBook!','success');
+}
+
+function doRegister() {
+  const fname = document.getElementById('reg-fname').value.trim();
+  const lname = document.getElementById('reg-lname').value.trim();
+  const services = document.getElementById('reg-services').value.trim();
+  const rate = parseInt(document.getElementById('reg-rate').value) || 0;
+  const deposit = parseInt(document.getElementById('reg-deposit').value) || 25;
+  const sessionType = document.getElementById('reg-session-type').value;
+  const location = document.getElementById('reg-location').value.trim();
+  const email = document.getElementById('reg-email').value.trim();
+  const phone = document.getElementById('reg-phone').value.trim();
+  const pass = document.getElementById('reg-password').value;
+  const confirm = document.getElementById('reg-confirm').value;
+  if (!fname||!lname||!email||!pass) { showToast('⚠️','Fill in required fields','error'); return; }
+  if (pass !== confirm) { showToast('⚠️','Passwords do not match','error'); return; }
+  if (rate < 1) { showToast('⚠️','Enter a valid hourly rate','error'); return; }
+  const initials = (fname[0]+(lname[0]||'')).toUpperCase();
+  const slug = (fname+'-'+lname).toLowerCase().replace(/\s+/g,'-');
+  state.user = {firstName:fname,lastName:lname,email,phone,services,rate,deposit,sessionType,location,initials,slug};
+  state.monthlyGoal = 0;
+  state.cancelWindow = 24;
+  state.depositByDay = {0:deposit,1:deposit,2:deposit,3:deposit,4:deposit,5:Math.min(deposit+5,100),6:Math.min(deposit+5,100)};
+  state.bookings = [];
+  state.slots = [];
+  state.waitlist = [];
+  saveState();
+  showMainApp();
+  showToast('🎉','Welcome to ReserBook!','success');
+}
+
+function doLogout() {
+  state.user = null;
+  saveState();
+  document.getElementById('main-app').style.display = 'none';
+  document.getElementById('auth-screen').style.display = 'flex';
+  showToast('👋','Logged out successfully','success');
+}
+
+// ── APP NAVIGATION ─────────────────────────────────────────────────────────
+function showMainApp() {
+  document.getElementById('auth-screen').style.display = 'none';
+  document.getElementById('public-booking').style.display = 'none';
+  document.getElementById('main-app').style.display = 'flex';
+  renderAll();
+}
+
+function showScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-'+name).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('nav-'+name)?.classList.add('active');
+  if (name==='dashboard') renderDashboard();
+  if (name==='bookings') renderBookings();
+  if (name==='calendar') renderFreelancerCalendar();
+  if (name==='clients') renderClients();
+  if (name==='settings') renderSettings();
+}
+
+function renderAll() {
+  if (!state.user) return;
+  updateTopbar();
+  renderDashboard();
+  renderPublicBookingPage();
+  renderSettings();
+}
+
+function updateTopbar() {
+  const u = state.user;
+  if (!u) return;
+  document.getElementById('topbar-avatar').textContent = u.initials;
+  document.getElementById('share-url').textContent = `reserbook.app/u/${u.slug}`;
+}
+
+// ── DASHBOARD ─────────────────────────────────────────────────────────────
+function renderDashboard() {
+  if (!state.user) return;
+  const u = state.user;
+  const h = new Date().getHours();
+  const greeting = h<12?'Good morning':h<17?'Good afternoon':'Good evening';
+  document.getElementById('greeting-text').textContent = greeting;
+  document.getElementById('dash-name').textContent = `${u.firstName} ${u.lastName} 👋`;
+
+  // Stats
+  const confirmed = state.bookings.filter(b=>b.status==='confirmed'&&isPastCancelWindow(b)).reduce((s,b)=>s+b.deposit,0);
+  const atrisk = state.bookings.filter(b=>b.status==='confirmed'&&!isPastCancelWindow(b)).reduce((s,b)=>s+b.deposit,0);
+  const projected = state.bookings.filter(b=>b.status==='confirmed').reduce((s,b)=>s+b.rate,0);
+  document.getElementById('stat-confirmed').textContent = '₱'+confirmed.toLocaleString();
+  document.getElementById('stat-atrisk').textContent = '₱'+atrisk.toLocaleString();
+  document.getElementById('stat-projected').textContent = '₱'+projected.toLocaleString();
+
+  // Goal
+  const totalEarned = confirmed + atrisk;
+  const goal = state.monthlyGoal;
+  const pct = goal>0?Math.min(100,(totalEarned/goal*100)):0;
+  document.getElementById('goal-sub').textContent = `₱${totalEarned.toLocaleString()} of ₱${goal.toLocaleString()} earned`;
+  document.getElementById('goal-bar').style.width = pct.toFixed(0)+'%';
+  const openSlots = state.slots.filter(s=>!state.bookings.find(b=>b.date===s.date&&b.time===s.start&&b.status!=='cancelled')).length;
+  const nudge = document.getElementById('goal-nudge');
+  if (goal>0&&pct<80&&openSlots>0) {
+    nudge.style.display = 'block';
+    nudge.textContent = `💡 You have ${openSlots} open slot${openSlots>1?'s':''} — share your booking page to hit your goal!`;
+    document.getElementById('open-slots-nudge').style.display = 'block';
+    document.getElementById('nudge-text').textContent = `You have ${openSlots} open slot${openSlots>1?'s':''} this week.`;
+  } else {
+    nudge.style.display = 'none';
+    document.getElementById('open-slots-nudge').style.display = 'none';
+  }
+
+  // Upcoming
+  const upcoming = state.bookings.filter(b=>b.status!=='cancelled'&&new Date(b.date)>=new Date(fmtDateISO(new Date()))).sort((a,b)=>new Date(a.date)-new Date(b.date)).slice(0,3);
+  const list = document.getElementById('upcoming-list');
+  if (upcoming.length===0) {
+    list.innerHTML = `<div class="empty-state" style="padding:24px"><div class="empty-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text4)" stroke-width="1.5"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div><div style="font-size:14px;color:var(--text3)">No upcoming sessions</div></div>`;
+    return;
+  }
+  list.innerHTML = upcoming.map(b=>bookingCardHTML(b)).join('');
+}
+
+function isPastCancelWindow(booking) {
+  const sessionDT = new Date(booking.date+'T'+booking.time+':00');
+  const diff = (sessionDT - new Date()) / (1000*60*60);
+  return diff < state.cancelWindow;
+}
+
+// ── BOOKINGS ──────────────────────────────────────────────────────────────
+function renderBookings() {
+  let bookings = state.bookings;
+  if (state.filterStatus!=='all') bookings = bookings.filter(b=>b.status===state.filterStatus);
+  if (state.filterQuery) bookings = bookings.filter(b=>b.clientName.toLowerCase().includes(state.filterQuery.toLowerCase())||b.service.toLowerCase().includes(state.filterQuery.toLowerCase()));
+  bookings = bookings.sort((a,b)=>new Date(b.date)-new Date(a.date));
+  const list = document.getElementById('bookings-list');
+  if (bookings.length===0) {
+    list.innerHTML = `<div class="empty-state"><div class="empty-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text4)" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div><div style="font-size:14px;color:var(--text3)">No bookings found</div></div>`;
+    return;
+  }
+  list.innerHTML = bookings.map(b=>bookingCardHTML(b, true)).join('');
+}
+
+function bookingCardHTML(b, showActions=false) {
+  const statusBadge = {confirmed:'badge-success',pending:'badge-gold',cancelled:'badge-danger',noshow:'badge-danger'};
+  const statusLabel = {confirmed:'Confirmed',pending:'Pending',cancelled:'Cancelled',noshow:'No-show'};
+  const sessionBadge = b.sessionType==='f2f'?'<span class="f2f-badge">📍 Face-to-Face</span>':'<span class="online-badge">💻 Online</span>';
+  const history = b.bookingCount>1?`<div class="client-history"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>Booked with you ${b.bookingCount} times</div>`:'';
+  return `<div class="booking-card" onclick="showBookingDetail('${b.id}')">
+    <div class="booking-card-header">
+      <div>
+        <div class="booking-time">${b.clientName}</div>
+        <div style="font-size:13px;color:var(--text3);margin-top:2px">${b.service}</div>
+      </div>
+      <span class="badge ${statusBadge[b.status]}">${statusLabel[b.status]}</span>
+    </div>
+    <div class="booking-meta">
+      <span style="font-size:13px;color:var(--text2)">📅 ${fmtDateDisplay(b.date)}</span>
+      <span style="font-size:13px;color:var(--text2)">⏰ ${fmt12hr(b.time)}</span>
+      ${sessionBadge}
+    </div>
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <div style="font-size:13px;color:var(--text3)">Deposit: <span style="color:var(--gold);font-weight:600">₱${b.deposit}</span></div>
+      <div style="font-size:13px;color:var(--text3)">Rate: <span style="color:var(--text2);font-weight:600">₱${b.rate}/hr</span></div>
+    </div>
+    ${history}
+  </div>`;
+}
+
+function showBookingDetail(id) {
+  const b = state.bookings.find(x=>x.id===id);
+  if (!b) return;
+  const statusLabel = {confirmed:'Confirmed',pending:'Pending',cancelled:'Cancelled',noshow:'No-show'};
+  const sessionBadge = b.sessionType==='f2f'?'<span class="f2f-badge">📍 Face-to-Face</span>':'<span class="online-badge">💻 Online</span>';
+  const history = b.bookingCount>1?`<div class="client-history" style="margin-bottom:12px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>Booked with you ${b.bookingCount} times</div>`:'';
+  document.getElementById('bd-title').textContent = b.clientName;
+  document.getElementById('bd-content').innerHTML = `
+    <div style="background:var(--bg3);border-radius:12px;padding:14px;margin-bottom:14px">
+      <div style="display:flex;justify-content:space-between;margin-bottom:8px">
+        <span style="font-size:13px;color:var(--text3)">Status</span>
+        <span class="badge badge-${b.status==='confirmed'?'success':b.status==='pending'?'gold':'danger'}">${statusLabel[b.status]}</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;margin-bottom:6px"><span style="font-size:13px;color:var(--text3)">Date</span><span style="font-size:13px;font-weight:600">${fmtDateDisplay(b.date)}</span></div>
+      <div style="display:flex;justify-content:space-between;margin-bottom:6px"><span style="font-size:13px;color:var(--text3)">Time</span><span style="font-size:13px;font-weight:600">${fmt12hr(b.time)} – ${fmt12hr(b.endTime)}</span></div>
+      <div style="display:flex;justify-content:space-between;margin-bottom:6px"><span style="font-size:13px;color:var(--text3)">Session</span>${sessionBadge}</div>
+      <div style="display:flex;justify-content:space-between;margin-bottom:6px"><span style="font-size:13px;color:var(--text3)">Service</span><span style="font-size:13px;font-weight:600">${b.service}</span></div>
+      <div style="display:flex;justify-content:space-between;margin-bottom:6px"><span style="font-size:13px;color:var(--text3)">Deposit</span><span style="font-size:13px;font-weight:600;color:var(--gold)">₱${b.deposit}</span></div>
+      <div style="display:flex;justify-content:space-between"><span style="font-size:13px;color:var(--text3)">Payment</span><span style="font-size:13px;font-weight:600">${b.payMethod?.toUpperCase()||'GCash'}</span></div>
+      ${b.notes?`<div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border)"><div style="font-size:12px;color:var(--text4);margin-bottom:3px">Notes</div><div style="font-size:13px;color:var(--text2)">${b.notes}</div></div>`:''}
+    </div>
+    <div style="margin-bottom:6px"><span style="font-size:13px;color:var(--text3)">Email: </span><a href="mailto:${b.email}" style="font-size:13px;color:var(--purple-light)">${b.email}</a></div>
+    <div style="margin-bottom:12px"><span style="font-size:13px;color:var(--text3)">Phone: </span><span style="font-size:13px;color:var(--text2)">${b.phone}</span></div>
+    ${history}
+    ${b.sessionType==='f2f'?`<div style="background:rgba(14,165,233,0.1);border:1px solid rgba(14,165,233,0.2);border-radius:10px;padding:12px;font-size:13px;color:var(--teal);margin-bottom:12px">📍 Meeting at: <strong>${state.user.location||'TBD'}</strong></div>`:''}
+    ${b.sessionType==='online'?`<div style="background:rgba(124,58,237,0.1);border:1px solid rgba(124,58,237,0.2);border-radius:10px;padding:12px;font-size:13px;color:var(--purple-light);margin-bottom:12px">💻 Online session — send meeting link to client</div>`:''}
+  `;
+  const actions = document.getElementById('bd-actions');
+  let btns = `<button class="btn-ghost" onclick="closeModal('booking-detail-modal')">Close</button>`;
+  if (b.status==='confirmed') {
+    btns += `<button class="btn-danger" onclick="cancelBooking('${b.id}')">Cancel & Refund</button>`;
+    if (b.sessionType==='f2f') {
+      btns += `<button class="btn-success" onclick="markAttendance('${b.id}','attended')">✓ Attended</button>`;
+    }
+  }
+  if (b.status==='pending') {
+    btns += `<button class="btn-success" onclick="confirmBookingStatus('${b.id}')">Confirm</button>`;
+    btns += `<button class="btn-danger" onclick="cancelBooking('${b.id}')">Cancel</button>`;
+  }
+  actions.innerHTML = btns;
+  openModal('booking-detail-modal');
+}
+
+function cancelBooking(id) {
+  const b = state.bookings.find(x=>x.id===id);
+  if (!b) return;
+  b.status = 'cancelled';
+  closeModal('booking-detail-modal');
+  saveState();
+  renderDashboard();
+  renderBookings();
+  notifyWaitlist(b.date);
+  showToast('✓','Booking cancelled — client will be refunded','success');
+}
+
+function confirmBookingStatus(id) {
+  const b = state.bookings.find(x=>x.id===id);
+  if (!b) return;
+  b.status = 'confirmed';
+  closeModal('booking-detail-modal');
+  saveState();
+  renderDashboard();
+  renderBookings();
+  showToast('✓','Booking confirmed!','success');
+}
+
+function markAttendance(id, status) {
+  const b = state.bookings.find(x=>x.id===id);
+  if (!b) return;
+  if (status==='noshow') b.status = 'noshow';
+  closeModal('booking-detail-modal');
+  saveState();
+  renderDashboard();
+  showToast('✓','Attendance recorded','success');
+}
+
+function notifyWaitlist(date) {
+  const interested = state.waitlist.filter(w=>!w.date||w.date===date);
+  if (interested.length>0) showToast('📩',`${interested.length} waitlisted client(s) notified of available slot`,'success');
+}
+
+function filterBookings(q) { state.filterQuery=q; renderBookings(); }
+function filterBookingsByStatus(status, el) {
+  state.filterStatus = status;
+  document.querySelectorAll('#booking-filter-tabs .scroll-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  renderBookings();
+}
+
+// ── CALENDAR ──────────────────────────────────────────────────────────────
+function renderFreelancerCalendar() {
+  const days = ['Su','Mo','Tu','We','Th','Fr','Sa'];
+  const hEl = document.getElementById('fl-cal-headers');
+  hEl.innerHTML = days.map(d=>`<div class="cal-day-header">${d}</div>`).join('');
+  const m = state.flCalMonth;
+  document.getElementById('fl-month-label').textContent = m.toLocaleString('default',{month:'long',year:'numeric'});
+  const first = new Date(m.getFullYear(),m.getMonth(),1);
+  const last = new Date(m.getFullYear(),m.getMonth()+1,0);
+  const today = fmtDateISO(new Date());
+  let html = '';
+  for (let i=0;i<first.getDay();i++) html+=`<div class="cal-day empty"></div>`;
+  for (let d=1;d<=last.getDate();d++) {
+    const date = fmtDateISO(new Date(m.getFullYear(),m.getMonth(),d));
+    const hasSlot = state.slots.some(s=>s.date===date);
+    const hasBooking = state.bookings.some(b=>b.date===date&&b.status!=='cancelled');
+    const isToday = date===today;
+    let cls = 'cal-day';
+    if (isToday) cls+=' today';
+    if (hasBooking) cls+=' has-booking';
+    if (hasSlot&&!hasBooking) cls+=' available';
+    html+=`<div class="${cls}" onclick="showFlDay('${date}')">${d}</div>`;
+  }
+  document.getElementById('fl-calendar').innerHTML = html;
+  const hasAny = state.slots.length>0||state.bookings.length>0;
+  document.getElementById('fl-empty').style.display = hasAny?'none':'flex';
+}
+
+function showFlDay(date) {
+  const detail = document.getElementById('fl-day-detail');
+  const slotsEl = document.getElementById('fl-day-slots');
+  const dateSlots = state.slots.filter(s=>s.date===date);
+  const dateBookings = state.bookings.filter(b=>b.date===date&&b.status!=='cancelled');
+  document.getElementById('fl-day-title').textContent = fmtDateDisplay(date);
+  detail.style.display = 'block';
+  let html = '';
+  if (dateBookings.length>0) {
+    html += '<div style="margin-bottom:12px"><div style="font-size:12px;color:var(--text4);text-transform:uppercase;letter-spacing:0.4px;margin-bottom:8px">Booked Sessions</div>';
+    html += dateBookings.map(b=>`<div class="card-sm" style="margin-bottom:8px;display:flex;justify-content:space-between;align-items:center" onclick="showBookingDetail('${b.id}')">
+      <div><div style="font-weight:600;font-size:14px">${b.clientName}</div><div style="font-size:12px;color:var(--text3)">${fmt12hr(b.time)} · ${b.service}</div></div>
+      <div style="text-align:right"><div style="font-size:12px;color:var(--gold)">₱${b.deposit}</div><div style="font-size:11px;color:var(--text4)">deposit</div></div>
+    </div>`).join('');
+    html += '</div>';
+  }
+  if (dateSlots.length>0) {
+    html += '<div><div style="font-size:12px;color:var(--text4);text-transform:uppercase;letter-spacing:0.4px;margin-bottom:8px">Available Slots</div>';
+    html += dateSlots.map(s=>{
+      const isBooked = state.bookings.some(b=>b.date===date&&b.time===s.start&&b.status!=='cancelled');
+      const typeLabel = s.type==='both'?'Online/F2F':s.type==='f2f'?'Face-to-Face':'Online';
+      return `<div class="card-sm" style="margin-bottom:8px;display:flex;justify-content:space-between;align-items:center">
+        <div><div style="font-weight:600;font-size:14px">${fmt12hr(s.start)} – ${fmt12hr(s.end)}</div><div style="font-size:12px;color:var(--text3)">${typeLabel}${s.notes?' · '+s.notes:''}</div></div>
+        <div style="display:flex;gap:6px">
+          ${!isBooked?'<span class="badge badge-success">Open</span>':'<span class="badge badge-danger">Booked</span>'}
+          <button onclick="removeSlot('${s.id}')" class="btn-ghost" style="padding:4px 8px;font-size:11px;color:var(--danger)">Remove</button>
+        </div>
+      </div>`;
+    }).join('');
+    html += '</div>';
+  }
+  if (!html) html = '<div style="font-size:14px;color:var(--text3);padding:16px 0">No slots or bookings on this day.</div>';
+  slotsEl.innerHTML = html;
+}
+
+function removeSlot(id) {
+  state.slots = state.slots.filter(s=>s.id!==id);
+  saveState();
+  renderFreelancerCalendar();
+  showToast('✓','Slot removed','success');
+}
+
+function changeFreelancerMonth(dir) {
+  state.flCalMonth = new Date(state.flCalMonth.getFullYear(), state.flCalMonth.getMonth()+dir, 1);
+  renderFreelancerCalendar();
+}
+
+// ── ADD SLOT ──────────────────────────────────────────────────────────────
+function showAddSlotModal() {
+  const today = fmtDateISO(new Date());
+  document.getElementById('slot-date').value = today;
+  document.getElementById('slot-date').min = today;
+  openModal('add-slot-modal');
+}
+
+function addSlot() {
+  const date = document.getElementById('slot-date').value;
+  const start = document.getElementById('slot-start').value;
+  const end = document.getElementById('slot-end').value;
+  const type = document.getElementById('slot-type').value;
+  const notes = document.getElementById('slot-notes').value;
+  if (!date||!start||!end) { showToast('⚠️','Fill in date and time','error'); return; }
+  if (start>=end) { showToast('⚠️','End time must be after start','error'); return; }
+  const id = 's'+Date.now();
+  state.slots.push({id,date,start,end,type,notes});
+  saveState();
+  closeModal('add-slot-modal');
+  if (state.isOnline) {
+    showToast('✓','Slot added!','success');
+  } else {
+    state.offlineQueue.push({action:'addSlot',data:{id,date,start,end,type,notes}});
+    showToast('📶','Slot saved offline — will sync when online','success');
+  }
+  renderFreelancerCalendar();
+  renderPublicBookingPage();
+  showFlDay(date);
+}
+
+// ── CLIENTS ──────────────────────────────────────────────────────────────
+function renderClients() {
+  // Build unique clients from bookings
+  const clientMap = {};
+  state.bookings.forEach(b=>{
+    if (!clientMap[b.email]) {
+      clientMap[b.email] = {name:b.clientName,email:b.email,phone:b.phone,bookings:[],totalDeposit:0,noShows:0};
+    }
+    clientMap[b.email].bookings.push(b);
+    if (b.status!=='cancelled') clientMap[b.email].totalDeposit += b.deposit;
+    if (b.status==='noshow') clientMap[b.email].noShows++;
+  });
+  const clients = Object.values(clientMap);
+  const q = state.filterQuery.toLowerCase();
+  const filtered = q ? clients.filter(c=>c.name.toLowerCase().includes(q)||c.email.toLowerCase().includes(q)) : clients;
+  const list = document.getElementById('clients-list');
+  if (filtered.length===0) {
+    list.innerHTML = `<div class="empty-state"><div class="empty-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text4)" stroke-width="1.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div><div style="font-size:14px;color:var(--text3)">No clients yet</div></div>`;
+    return;
+  }
+  list.innerHTML = filtered.map(c=>{
+    const initials = c.name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
+    const lastBooking = c.bookings.sort((a,b)=>new Date(b.date)-new Date(a.date))[0];
+    const statusBadge = c.noShows>0?'<span class="badge badge-danger">'+c.noShows+' no-show'+(c.noShows>1?'s':'')+'</span>':'';
+    return `<div class="card-sm" style="margin-bottom:10px">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div style="width:44px;height:44px;min-width:44px;border-radius:50%;background:linear-gradient(135deg,var(--purple),var(--purple-dark));display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:16px;font-weight:700;color:white">${initials}</div>
+        <div style="flex:1">
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+            <span style="font-weight:600;font-size:15px">${c.name}</span>
+            ${c.bookings.length>1?`<span class="badge badge-purple">${c.bookings.length}× booked</span>`:''}
+            ${statusBadge}
+          </div>
+          <div style="font-size:12px;color:var(--text3);margin-top:2px">${c.email} · Last: ${fmtDateDisplay(lastBooking.date)}</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:14px;font-weight:700;color:var(--gold)">₱${c.totalDeposit}</div>
+          <div style="font-size:11px;color:var(--text4)">deposits</div>
+        </div>
+      </div>
+      ${c.bookings.length>1?`<div class="client-history" style="margin-top:10px">Returning client — ${c.bookings.length} sessions total</div>`:''}
+    </div>`;
+  }).join('');
+}
+
+function filterClients(q) { state.filterQuery=q; renderClients(); }
+
+// ── SETTINGS ──────────────────────────────────────────────────────────────
+function renderSettings() {
+  if (!state.user) return;
+  const u = state.user;
+  document.getElementById('settings-avatar').textContent = u.initials;
+  document.getElementById('settings-name').textContent = `${u.firstName} ${u.lastName}`;
+  document.getElementById('settings-email').textContent = u.email;
+  document.getElementById('settings-goal').value = state.monthlyGoal||'';
+  document.getElementById('cancel-window-input').value = state.cancelWindow;
+  document.getElementById('settings-session-type').value = state.sessionType||u.sessionType||'both';
+  document.getElementById('settings-location').value = state.location||u.location||'';
+
+  // Deposit by day
+  const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const depEl = document.getElementById('deposit-by-day');
+  depEl.innerHTML = days.map((d,i)=>`
+    <div class="day-deposit">
+      <span style="font-size:14px;font-weight:500;color:var(--text2)">${d}</span>
+      <div style="display:flex;align-items:center;gap:6px">
+        <input type="number" min="5" max="100" value="${state.depositByDay[i]}" onchange="updateDayDeposit(${i},this.value)" style="width:60px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:6px 10px;color:var(--text);font-size:14px;text-align:center">
+        <span style="font-size:13px;color:var(--text4)">%</span>
+      </div>
+    </div>`).join('');
+
+  // Offline queue
+  const queueEl = document.getElementById('offline-queue-info');
+  if (state.offlineQueue.length>0) {
+    queueEl.style.display = 'block';
+    document.getElementById('queue-count').textContent = state.offlineQueue.length;
+  } else {
+    queueEl.style.display = 'none';
+  }
+
+  // Waitlist
+  const wl = document.getElementById('waitlist-list');
+  if (state.waitlist.length===0) {
+    wl.innerHTML = '<div style="font-size:13px;color:var(--text4);text-align:center;padding:12px">No waitlist entries</div>';
+  } else {
+    wl.innerHTML = state.waitlist.map((w,i)=>`
+      <div class="waitlist-item">
+        <div style="flex:1"><div style="font-size:14px;font-weight:500">${w.email}</div>${w.date?`<div style="font-size:12px;color:var(--text3)">Preferred: ${fmtDateDisplay(w.date)}</div>`:''}</div>
+        <button class="btn-ghost" style="font-size:12px;padding:4px 8px;color:var(--danger)" onclick="removeWaitlist(${i})">Remove</button>
+      </div>`).join('');
+  }
+}
+
+function updateDayDeposit(day, val) {
+  state.depositByDay[day] = parseInt(val)||25;
+  saveState();
+}
+
+function saveSettings() {
+  state.cancelWindow = parseInt(document.getElementById('cancel-window-input').value)||24;
+  state.sessionType = document.getElementById('settings-session-type').value;
+  state.location = document.getElementById('settings-location').value;
+  state.monthlyGoal = parseInt(document.getElementById('settings-goal').value)||0;
+  saveState();
+  renderPublicBookingPage();
+  showToast('✓','Settings saved','success');
+}
+
+function removeWaitlist(i) {
+  state.waitlist.splice(i,1);
+  saveState();
+  renderSettings();
+}
+
+// ── GOAL ──────────────────────────────────────────────────────────────────
+function showGoalModal() {
+  document.getElementById('goal-input').value = state.monthlyGoal||'';
+  openModal('goal-modal');
+}
+
+function saveGoal() {
+  const v = parseInt(document.getElementById('goal-input').value)||0;
+  state.monthlyGoal = v;
+  saveState();
+  closeModal('goal-modal');
+  renderDashboard();
+  showToast('✓','Monthly goal updated!','success');
+}
+
+// ── PUBLIC BOOKING PAGE ───────────────────────────────────────────────────
+function renderPublicBookingPage() {
+  if (!state.user) return;
+  const u = state.user;
+  document.getElementById('pub-avatar').textContent = u.initials;
+  document.getElementById('pub-name').textContent = `${u.firstName} ${u.lastName}`;
+  document.getElementById('pub-tagline').textContent = u.services;
+  const pills = document.getElementById('pub-services-pills');
+  pills.innerHTML = u.services.split(',').map(s=>`<div class="service-pill">${s.trim()}</div>`).join('');
+  document.getElementById('pub-location-text').textContent = state.location||u.location||'Metro Manila';
+  const sType = state.sessionType||u.sessionType||'both';
+  const onlineCard = document.getElementById('pub-online-card');
+  const f2fCard = document.getElementById('pub-f2f-card');
+  const sessionDiv = document.getElementById('pub-session-choice');
+  if (sType==='online') { sessionDiv.style.display='none'; state.selectedPubSession='online'; }
+  else if (sType==='f2f') { sessionDiv.style.display='none'; state.selectedPubSession='f2f'; }
+  else { sessionDiv.style.display='block'; }
+  const todayDeposit = state.depositByDay[new Date().getDay()]||u.deposit||25;
+  const depAmt = Math.round(u.rate*(todayDeposit/100));
+  document.getElementById('pub-rate-display').textContent = `₱${u.rate}/hr`;
+  document.getElementById('pub-deposit-display').textContent = `₱${depAmt} (${todayDeposit}%)`;
+  document.getElementById('pub-cancel-window').textContent = `${state.cancelWindow}h notice`;
+  const clientSvc = document.getElementById('client-service');
+  clientSvc.innerHTML = '<option value="">Select a service...</option>'+u.services.split(',').map(s=>`<option value="${s.trim()}">${s.trim()}</option>`).join('')+'<option value="Other">Other (specify in notes)</option>';
+  renderPublicCalendar();
+}
+
+function selectPubSession(type) {
+  state.selectedPubSession = type;
+  document.getElementById('pub-online-card').classList.toggle('selected', type==='online');
+  document.getElementById('pub-f2f-card').classList.toggle('selected', type==='f2f');
+}
+
+function renderPublicCalendar() {
+  const days = ['Su','Mo','Tu','We','Th','Fr','Sa'];
+  const hEl = document.getElementById('pub-cal-headers');
+  hEl.innerHTML = days.map(d=>`<div class="cal-day-header">${d}</div>`).join('');
+  const m = state.pubCalMonth;
+  document.getElementById('pub-month-label').textContent = m.toLocaleString('default',{month:'long',year:'numeric'});
+  const first = new Date(m.getFullYear(),m.getMonth(),1);
+  const last = new Date(m.getFullYear(),m.getMonth()+1,0);
+  const today = fmtDateISO(new Date());
+  let html = '';
+  for (let i=0;i<first.getDay();i++) html+=`<div class="cal-day empty"></div>`;
+  for (let d=1;d<=last.getDate();d++) {
+    const date = fmtDateISO(new Date(m.getFullYear(),m.getMonth(),d));
+    const isPast = date < today;
+    const hasSlot = state.slots.some(s=>s.date===date&&!state.bookings.find(b=>b.date===date&&b.time===s.start&&b.status!=='cancelled'));
+    const isSelected = date===state.selectedPubDate;
+    let cls = 'cal-day';
+    if (isPast) cls+=' disabled';
+    else if (isSelected) cls+=' selected';
+    else if (date===today) cls+=' today';
+    if (hasSlot&&!isPast) cls+=' has-booking';
+    html+=`<div class="${cls}" onclick="${isPast?'':`selectPubDate('${date}')`}">${d}</div>`;
+  }
+  document.getElementById('pub-calendar').innerHTML = html;
+}
+
+function selectPubDate(date) {
+  state.selectedPubDate = date;
+  state.selectedPubSlot = null;
+  renderPublicCalendar();
+  const slots = state.slots.filter(s=>s.date===date);
+  const slotsSection = document.getElementById('pub-slots-section');
+  if (slots.length===0) { slotsSection.style.display='none'; return; }
+  slotsSection.style.display='block';
+  document.getElementById('pub-selected-date').textContent = fmtDateDisplay(date);
+  const slotsEl = document.getElementById('pub-slots');
+  slotsEl.innerHTML = slots.map(s=>{
+    const isBooked = state.bookings.some(b=>b.date===date&&b.time===s.start&&b.status!=='cancelled');
+    const cls = isBooked?'slot booked':'slot available';
+    return `<div class="${cls}" id="slot-${s.id}" onclick="${isBooked?'':`selectSlot('${s.id}')`}">${fmt12hr(s.start)}<br><span style="font-size:11px;opacity:0.7">${isBooked?'Booked':'Available'}</span></div>`;
+  }).join('');
+  updateBookBtn();
+}
+
+function selectSlot(id) {
+  state.selectedPubSlot = id;
+  document.querySelectorAll('.slot').forEach(el=>{
+    el.classList.remove('selected');
+    if (el.id==='slot-'+id) el.classList.add('selected');
+  });
+  updateBookBtn();
+}
+
+function updateBookBtn() {
+  const btn = document.getElementById('pub-book-btn');
+  if (state.selectedPubDate&&state.selectedPubSlot) {
+    const slot = state.slots.find(s=>s.id===state.selectedPubSlot);
+    btn.disabled = false;
+    btn.style.opacity = '1';
+    btn.textContent = `Book ${fmt12hr(slot.start)} on ${fmtDateDisplay(state.selectedPubDate)}`;
+    // Update summary
+    document.getElementById('booking-summary-time').textContent = `${fmtDateDisplay(state.selectedPubDate)} · ${fmt12hr(slot.start)}`;
+    const badges = document.getElementById('booking-summary-badges');
+    const u = state.user;
+    const dep = state.depositByDay[new Date(state.selectedPubDate).getDay()]||u.deposit||25;
+    const depAmt = Math.round(u.rate*(dep/100));
+    badges.innerHTML = `<span class="badge badge-gold">₱${depAmt} deposit</span>${state.selectedPubSession==='f2f'?'<span class="f2f-badge">Face-to-Face</span>':'<span class="online-badge">Online</span>'}`;
+  } else {
+    btn.disabled = true;
+    btn.style.opacity = '0.5';
+    btn.textContent = 'Select a date and time to book';
+  }
+}
+
+function changeMonth(dir) {
+  state.pubCalMonth = new Date(state.pubCalMonth.getFullYear(), state.pubCalMonth.getMonth()+dir, 1);
+  state.selectedPubDate = null;
+  state.selectedPubSlot = null;
+  renderPublicCalendar();
+  document.getElementById('pub-slots-section').style.display='none';
+  updateBookBtn();
+}
+
+function showBookingModal() { if (state.selectedPubSlot) openModal('booking-modal'); }
+function showWaitlistModal() { openModal('waitlist-modal'); }
+
+function confirmBooking() {
+  const name = document.getElementById('client-name').value.trim();
+  const email = document.getElementById('client-email').value.trim();
+  const phone = document.getElementById('client-phone').value.trim();
+  const service = document.getElementById('client-service').value;
+  const notes = document.getElementById('client-notes').value.trim();
+  if (!name||!email||!service) { showToast('⚠️','Please fill name, email, and service','error'); return; }
+  const slot = state.slots.find(s=>s.id===state.selectedPubSlot);
+  if (!slot) return;
+  const u = state.user;
+  const dep = state.depositByDay[new Date(state.selectedPubDate).getDay()]||u.deposit||25;
+  const depAmt = Math.round(u.rate*(dep/100));
+  // Check repeat
+  const prevCount = state.bookings.filter(b=>b.email===email).length;
+  const id = 'b'+Date.now();
+  const newBooking = {
+    id, clientName:name, email, phone, service, notes,
+    date:state.selectedPubDate, time:slot.start, endTime:slot.end,
+    sessionType:state.selectedPubSession, status:state.selectedPayMethod==='cash'?'pending':'confirmed',
+    deposit:depAmt, rate:u.rate, payMethod:state.selectedPayMethod,
+    bookingCount:prevCount+1, noShow:false
+  };
+  state.bookings.push(newBooking);
+  if (!state.isOnline) {
+    state.offlineQueue.push({action:'createBooking',data:newBooking});
+  }
+  saveState();
+  closeModal('booking-modal');
+  // Reset
+  state.selectedPubDate=null; state.selectedPubSlot=null;
+  renderPublicCalendar();
+  document.getElementById('pub-slots-section').style.display='none';
+  updateBookBtn();
+  showToast('🎉',`Booking confirmed! Deposit ₱${depAmt} via ${state.selectedPayMethod.toUpperCase()}. Email confirmation sent to ${email}.`,'success');
+  renderDashboard();
+  if (prevCount>0) setTimeout(()=>showToast('📋',`${name} has booked with you ${prevCount+1} times.`,'success'),2000);
+}
+
+function joinWaitlist() {
+  const email = document.getElementById('waitlist-email').value.trim();
+  const date = document.getElementById('waitlist-date').value;
+  if (!email) { showToast('⚠️','Enter your email','error'); return; }
+  state.waitlist.push({email,date});
+  saveState();
+  closeModal('waitlist-modal');
+  showToast('✓','You\'re on the waitlist! We\'ll email you if a slot opens up.','success');
+}
+
+function selectPayMethod(method) {
+  state.selectedPayMethod = method;
+  ['gcash','card','cash'].forEach(m=>{
+    document.getElementById('pay-'+m).classList.toggle('selected',m===method);
+  });
+  document.getElementById('pay-gcash-info').style.display = method==='gcash'?'block':'none';
+  document.getElementById('pay-cash-info').style.display = method==='cash'?'block':'none';
+}
+
+// ── PUBLIC PAGE TOGGLE ────────────────────────────────────────────────────
+function showPublicBooking() {
+  document.getElementById('main-app').style.display='none';
+  document.getElementById('public-booking').style.display='flex';
+  renderPublicBookingPage();
+}
+
+function showMainApp2() {
+  document.getElementById('public-booking').style.display='none';
+  document.getElementById('main-app').style.display='flex';
+}
+
+// Make the share link open the public page
+function copyShareLink() {
+  showToast('🔗','Link copied! Share it with your clients.','success');
+  // In a real app this would copy to clipboard
+  if(navigator.clipboard) navigator.clipboard.writeText(`reserbook.app/u/${state.user?.slug||'freelancer'}`).catch(()=>{});
+}
+
+// ── MODAL UTILS ───────────────────────────────────────────────────────────
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+// Close on overlay click
+document.querySelectorAll('.modal-overlay').forEach(overlay=>{
+  overlay.addEventListener('click', e => { if (e.target===overlay) overlay.classList.remove('open'); });
+});
+
+// ── TOAST ─────────────────────────────────────────────────────────────────
+let toastTimer;
+function showToast(icon, msg, type='success') {
+  const toast = document.getElementById('toast');
+  document.getElementById('toast-icon').textContent = icon;
+  document.getElementById('toast-msg').textContent = msg;
+  toast.className = 'toast '+type+' show';
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>toast.classList.remove('show'), 3500);
+}
+
+// ── DATE HELPERS ──────────────────────────────────────────────────────────
+function fmtDateISO(d) {
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+function fmtDateDisplay(iso) {
+  if (!iso) return '';
+  const d = new Date(iso+'T12:00:00');
+  return d.toLocaleDateString('en-PH',{weekday:'short',month:'short',day:'numeric'});
+}
+function fmt12hr(time24) {
+  if (!time24) return '';
+  const [h,m] = time24.split(':').map(Number);
+  const ampm = h<12?'AM':'PM';
+  const h12 = h%12||12;
+  return `${h12}:${String(m).padStart(2,'0')} ${ampm}`;
+}
+function addDays(d, n) { const r=new Date(d); r.setDate(r.getDate()+n); return r; }
+
+// ── PWA SERVICE WORKER ────────────────────────────────────────────────────
+if ('serviceWorker' in navigator) {
+  const sw = `
+    const CACHE = 'reserbook-v1';
+    self.addEventListener('install', e => e.waitUntil(caches.open(CACHE).then(c => c.addAll(['/']))));
+    self.addEventListener('fetch', e => e.respondWith(caches.match(e.request).then(r => r || fetch(e.request).catch(() => new Response('Offline')))));
+  `;
+  const blob = new Blob([sw], {type:'application/javascript'});
+  const url = URL.createObjectURL(blob);
+  navigator.serviceWorker.register(url).catch(()=>{});
+}
+
+// ── INSTALL PROMPT ────────────────────────────────────────────────────────
+let installPrompt;
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  installPrompt = e;
+  document.getElementById('pwa-status').textContent = 'Install Now';
+  document.getElementById('pwa-status').onclick = () => installPrompt.prompt();
+});
+
+// ── ENTER KEY ─────────────────────────────────────────────────────────────
+document.addEventListener('keydown', e => {
+  if (e.key==='Escape') document.querySelectorAll('.modal-overlay.open').forEach(m=>m.classList.remove('open'));
+});
+</script>
+</body>
+</html>
