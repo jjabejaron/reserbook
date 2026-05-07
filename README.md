@@ -115,7 +115,7 @@ This project is for educational and hackathon portfolio purposes.
 
 ## Author
 
-Justine Joy Abejaron, Drix Marco Almonte & Bernadette Lim
+Justine Joy Abejaron, Bernadette Lim & Drix Marco Almonte
 
 ```
 ```
