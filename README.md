@@ -3,7 +3,7 @@
 
 ReserBook is a modern deposit-based booking platform designed for freelancers, tutors, coaches, and service providers. It helps freelancers reduce no-shows by requiring booking deposits while giving clients a smooth and professional scheduling experience.
 
-## ✨ Features
+## Features
 
 - Freelancer authentication (Login & Register)
 - Interactive booking calendar
@@ -28,7 +28,7 @@ ReserBook is a modern deposit-based booking platform designed for freelancers, t
 
 ---
 
-## 📂 Project Structure
+## Project Structure
 
 ```bash
 ReserBook/
@@ -107,13 +107,13 @@ Modern purple-themed booking dashboard with:
 
 ---
 
-## 📄 License
+## License
 
 This project is for educational and hackathon portfolio purposes.
 
 ---
 
-## 👨‍💻 Author
+## Author
 
 Justine Joy Abejaron & Bernadette Lim
 
